@@ -67,6 +67,25 @@ The language model is not treated as the source of truth.
 
 Retrieved source evidence is the primary basis for generated answers.
 
+
+## Document Ingestion Layer
+
+The current implementation includes a governed PDF ingestion pipeline using PyMuPDF.
+
+The ingestion layer:
+
+- validates approved PDF inputs
+- extracts page-level text
+- preserves document and page provenance
+- normalizes formatting noise
+- attaches version-aware document metadata
+- records extraction quality
+- supports automated ingestion QA tests
+
+Raw source documents remain unchanged in `data/raw/`.
+
+The ingestion architecture is intentionally modular so it can later support chunking, retrieval, Azure services and Microsoft Fabric storage/orchestration.
+
 If sufficient evidence cannot be retrieved, the system should state that the available evidence is insufficient rather than fabricate policy content.
 
 ## Status
