@@ -38,3 +38,53 @@ def test_clean_text_preserves_policy_meaning():
 
     assert "OPEL 4" in cleaned
     assert "executive review" in cleaned
+
+
+
+from src.ingestion.document_metadata import (
+    get_document_metadata,
+    enrich_page_record,
+)
+
+
+def test_get_document_metadata():
+    metadata = get_document_metadata("DOC-001")
+
+    assert metadata.document_id == "DOC-001"
+    assert metadata.title == "Operational Escalation Policy"
+    assert metadata.status == "Active"
+
+
+def test_missing_document_metadata_raises_error():
+    try:
+        get_document_metadata("DOC-999")
+        assert False, "Expected KeyError"
+    except KeyError:
+        assert True
+
+
+def test_enrich_page_record():
+    metadata = get_document_metadata("DOC-001")
+
+    page = {
+        "document_id": "DOC-001",
+        "page_number": 1,
+        "text": "Example policy text.",
+        "source_file": "DOC-001_operational_escalation_policy.pdf",
+        "extraction_status": "success",
+    }
+
+    enriched = enrich_page_record(page, metadata)
+
+    assert enriched["title"] == "Operational Escalation Policy"
+    assert enriched["version"] == "1.0"
+    assert enriched["page_number"] == 1
+
+
+
+from uuid import uuid4
+
+def create_ingestion_batch_id() -> str:
+    return str(uuid4())
+
+
