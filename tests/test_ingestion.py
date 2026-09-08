@@ -84,7 +84,7 @@ def test_enrich_page_record():
 
 from uuid import uuid4
 
-def create_ingestion_batch_id() -> str:
-    return str(uuid4())
+
+
 
 
