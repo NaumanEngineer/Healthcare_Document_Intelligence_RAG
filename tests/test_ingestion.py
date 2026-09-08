@@ -85,6 +85,99 @@ def test_enrich_page_record():
 from uuid import uuid4
 
 
+from pathlib import Path
 
+import pytest
+
+from src.ingestion.load_documents import (
+    validate_pdf_path,
+    document_has_usable_text,
+)
+
+from src.ingestion.document_metadata import (
+    get_document_metadata,
+)
+
+def test_missing_file_raises_file_not_found():
+    missing_file = Path("data/raw/does_not_exist.pdf")
+
+    with pytest.raises(FileNotFoundError):
+        validate_pdf_path(missing_file)
+
+
+def test_rejects_unsupported_file_type(tmp_path):
+    test_file = tmp_path / "example.txt"
+    test_file.write_text("Not a PDF")
+
+    with pytest.raises(ValueError):
+        validate_pdf_path(test_file)
+
+
+def test_document_with_no_usable_text_returns_false():
+    records = [
+        {
+            "document_id": "DOC-001",
+            "page_number": 1,
+            "text": "",
+            "source_file": "example.pdf",
+            "extraction_status": "empty_page",
+        },
+        {
+            "document_id": "DOC-001",
+            "page_number": 2,
+            "text": "",
+            "source_file": "example.pdf",
+            "extraction_status": "empty_page",
+        },
+    ]
+
+    assert document_has_usable_text(records) is False
+
+
+def test_document_with_usable_text_returns_true():
+    records = [
+        {
+            "document_id": "DOC-001",
+            "page_number": 1,
+            "text": "",
+            "source_file": "example.pdf",
+            "extraction_status": "empty_page",
+        },
+        {
+            "document_id": "DOC-001",
+            "page_number": 2,
+            "text": "Operational escalation guidance.",
+            "source_file": "example.pdf",
+            "extraction_status": "success",
+        },
+    ]
+
+    assert document_has_usable_text(records) is True
+
+
+def test_unknown_document_id_raises_key_error():
+    with pytest.raises(KeyError):
+        get_document_metadata("DOC-999")
+
+def test_page_numbers_are_one_based():
+    records = [
+        {
+            "document_id": "DOC-001",
+            "page_number": 1,
+            "text": "Page one",
+            "source_file": "example.pdf",
+            "extraction_status": "success",
+        },
+        {
+            "document_id": "DOC-001",
+            "page_number": 2,
+            "text": "Page two",
+            "source_file": "example.pdf",
+            "extraction_status": "success",
+        },
+    ]
+
+    assert records[0]["page_number"] == 1
+    assert records[1]["page_number"] == 2
 
 
