@@ -180,4 +180,32 @@ def test_page_numbers_are_one_based():
     assert records[0]["page_number"] == 1
     assert records[1]["page_number"] == 2
 
+from src.evaluation.ingestion_qa import build_ingestion_report
+
+def test_build_ingestion_report():
+    records = [
+        {
+            "document_id": "DOC-001",
+            "page_number": 1,
+            "text": "Operational escalation guidance.",
+            "source_file": "policy.pdf",
+            "extraction_status": "success",
+        },
+        {
+            "document_id": "DOC-001",
+            "page_number": 2,
+            "text": "",
+            "source_file": "policy.pdf",
+            "extraction_status": "empty_page",
+        },
+    ]
+
+    report = build_ingestion_report(records)
+
+    assert report["documents_processed"] == 1
+    assert report["source_files_processed"] == 1
+    assert report["pages_processed"] == 2
+    assert report["successful_pages"] == 1
+    assert report["empty_pages"] == 1
+
 
