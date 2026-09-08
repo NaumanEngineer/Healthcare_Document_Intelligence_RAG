@@ -43,3 +43,14 @@ def clean_text(text: str) -> str:
     text = normalize_whitespace(text)
 
     return text
+
+
+def cleaning_summary(raw_text: str, cleaned_text: str) -> dict:
+    """
+    Return simple QA statistics for a cleaning operation.
+    """
+    return {
+        "raw_character_count": len(raw_text),
+        "clean_character_count": len(cleaned_text),
+        "characters_removed": len(raw_text) - len(cleaned_text),
+    }
