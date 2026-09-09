@@ -1,0 +1,12 @@
+{
+  "total_chunks": 12,
+  "average_chunk_length": 842.5,
+  "minimum_chunk_length": 214,
+  "maximum_chunk_length": 1187,
+  "empty_chunk_count": 0,
+  "duplicate_chunk_id_count": 0,
+  "short_chunk_count": 0,
+  "long_chunk_count": 0,
+  "missing_provenance_count": 0,
+  "quality_status": "passed"
+}
