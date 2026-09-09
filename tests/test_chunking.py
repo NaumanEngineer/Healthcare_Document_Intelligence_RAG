@@ -191,3 +191,113 @@ def test_build_chunks_from_enriched_pages():
     assert chunks[0]["chunk_id"].startswith(
         "DOC-001-V1.0-P001-C"
     )
+
+
+from src.evaluation.chunk_qa import (
+    build_chunk_qa_report,
+    classify_chunk_quality,
+    find_duplicate_chunk_ids,
+    find_empty_chunks,
+)
+
+
+def test_chunk_qa_passes_clean_chunks():
+    chunks = [
+        {
+            "chunk_id": "DOC-001-V1.0-P001-C001",
+            "document_id": "DOC-001",
+            "version": "1.0",
+            "status": "Active",
+            "source_file": "policy.pdf",
+            "page": 1,
+            "chunk_number": 1,
+            "text": "A" * 300,
+        }
+    ]
+
+    report = build_chunk_qa_report(chunks)
+
+    assert report["total_chunks"] == 1
+    assert report["empty_chunk_count"] == 0
+    assert report["duplicate_chunk_id_count"] == 0
+    assert report["quality_status"] == "passed"
+
+
+def test_chunk_qa_detects_empty_chunk():
+    chunks = [
+        {
+            "chunk_id": "DOC-001-V1.0-P001-C001",
+            "document_id": "DOC-001",
+            "version": "1.0",
+            "status": "Active",
+            "source_file": "policy.pdf",
+            "page": 1,
+            "chunk_number": 1,
+            "text": "",
+        }
+    ]
+
+    empty = find_empty_chunks(chunks)
+
+    assert empty == [
+        "DOC-001-V1.0-P001-C001"
+    ]
+
+
+def test_chunk_qa_detects_duplicate_ids():
+    chunks = [
+        {
+            "chunk_id": "DOC-001-V1.0-P001-C001",
+            "text": "A" * 300,
+        },
+        {
+            "chunk_id": "DOC-001-V1.0-P001-C001",
+            "text": "B" * 300,
+        },
+    ]
+
+    duplicates = find_duplicate_chunk_ids(chunks)
+
+    assert duplicates == [
+        "DOC-001-V1.0-P001-C001"
+    ]
+
+
+def test_chunk_qa_marks_short_chunk_for_review():
+    chunks = [
+        {
+            "chunk_id": "DOC-001-V1.0-P001-C001",
+            "document_id": "DOC-001",
+            "version": "1.0",
+            "status": "Active",
+            "source_file": "policy.pdf",
+            "page": 1,
+            "chunk_number": 1,
+            "text": "Short text.",
+        }
+    ]
+
+    report = build_chunk_qa_report(chunks)
+
+    assert report["short_chunk_count"] == 1
+    assert report["quality_status"] == "review"
+
+
+def test_chunk_qa_fails_missing_provenance():
+    chunks = [
+        {
+            "chunk_id": "DOC-001-V1.0-P001-C001",
+            "text": "A" * 300,
+        }
+    ]
+
+    report = build_chunk_qa_report(chunks)
+
+    assert report["missing_provenance_count"] == 1
+    assert report["quality_status"] == "failed"
+
+
+def test_zero_chunks_fail_quality():
+    report = build_chunk_qa_report([])
+
+    assert report["quality_status"] == "failed"
