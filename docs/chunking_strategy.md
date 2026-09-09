@@ -86,3 +86,15 @@ The first implementation will not yet perform:
 - cross-document chunking
 - retrieval optimisation
 - vector indexing
+
+
+## Overlap Behaviour
+
+Overlap is word-aligned rather than character-aligned.
+
+The overlap size is treated as a maximum character budget, and the start position is moved forward to a word boundary where possible.
+
+This prevents broken words from appearing at chunk boundaries.
+
+The current prototype does not guarantee sentence-aligned overlap. Sentence fragments may still occur, which is accepted as a documented limitation to keep the implementation simple and transparent.
+
