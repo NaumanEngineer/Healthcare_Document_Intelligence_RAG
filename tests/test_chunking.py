@@ -301,3 +301,70 @@ def test_zero_chunks_fail_quality():
     report = build_chunk_qa_report([])
 
     assert report["quality_status"] == "failed"
+
+
+
+def test_chunk_qa_detects_invalid_page_number():
+    chunks = [
+        {
+            "chunk_id": (
+                "DOC-001-V1.0-P001-C001"
+            ),
+            "document_id": "DOC-001",
+            "version": "1.0",
+            "status": "Active",
+            "source_file": "policy.pdf",
+            "page": 0,
+            "chunk_number": 1,
+            "text": "A" * 300,
+        }
+    ]
+
+    report = build_chunk_qa_report(
+        chunks
+    )
+
+    assert (
+        report[
+            "missing_provenance_count"
+        ]
+        == 1
+    )
+
+    assert (
+        report["quality_status"]
+        == "failed"
+    )
+
+
+def test_chunk_qa_rejects_blank_source_file():
+    chunks = [
+        {
+            "chunk_id": (
+                "DOC-001-V1.0-P001-C001"
+            ),
+            "document_id": "DOC-001",
+            "version": "1.0",
+            "status": "Active",
+            "source_file": "   ",
+            "page": 1,
+            "chunk_number": 1,
+            "text": "A" * 300,
+        }
+    ]
+
+    report = build_chunk_qa_report(
+        chunks
+    )
+
+    assert (
+        report[
+            "missing_provenance_count"
+        ]
+        == 1
+    )
+
+    assert (
+        report["quality_status"]
+        == "failed"
+    )
