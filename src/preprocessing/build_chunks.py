@@ -8,6 +8,7 @@ from src.ingestion.load_documents import (
 from src.ingestion.document_metadata import (
     get_document_metadata,
     enrich_page_record,
+    create_ingestion_batch_id,
 )
 
 from src.preprocessing.clean_text import (
@@ -44,9 +45,14 @@ def clean_page_record(page_record: dict) -> dict:
 def enrich_pages_with_metadata(
     page_records: list[dict],
     document_id: str,
+    ingestion_batch_id: str,
 ) -> list[dict]:
     """
-    Attach canonical document metadata to every extracted page.
+    Attach canonical document metadata and ingestion lineage
+    to every extracted page.
+
+    The same ingestion_batch_id is applied to all pages
+    belonging to one document-processing run.
     """
 
     metadata = get_document_metadata(document_id)
@@ -59,6 +65,11 @@ def enrich_pages_with_metadata(
             metadata,
         )
 
+        enriched_page = {
+            **enriched_page,
+            "ingestion_batch_id": ingestion_batch_id,
+        }
+
         enriched_pages.append(enriched_page)
 
     return enriched_pages
@@ -70,8 +81,14 @@ def build_chunks_from_pages(
     overlap_chars: int = DEFAULT_OVERLAP_CHARS,
 ) -> list[dict]:
     """
-    Convert enriched and cleaned page records into
-    validated retrieval-ready chunks.
+    Convert enriched page records into validated
+    retrieval-ready chunks.
+
+    Flow for each page:
+    1. clean page text
+    2. chunk page text
+    3. preserve metadata and provenance
+    4. validate canonical chunk metadata
     """
 
     chunks = []
@@ -89,6 +106,7 @@ def build_chunks_from_pages(
 
         for chunk in page_chunks:
             validate_chunk_metadata(chunk)
+
             chunks.append(chunk)
 
     return chunks
@@ -101,17 +119,21 @@ def build_document_chunks(
     overlap_chars: int = DEFAULT_OVERLAP_CHARS,
 ) -> list[dict]:
     """
-    Complete document-to-chunk pipeline.
+    Complete document-to-retrieval-chunk pipeline.
 
     Flow:
-    1. extract PDF pages
-    2. confirm usable text exists
-    3. attach document metadata
-    4. clean page text
-    5. chunk each page
-    6. validate canonical chunk metadata
-    7. return retrieval-ready chunks
+    1. create one ingestion batch ID
+    2. extract PDF pages
+    3. confirm usable text exists
+    4. attach document metadata
+    5. attach ingestion lineage
+    6. clean page text
+    7. create page-level chunks
+    8. validate canonical chunk metadata
+    9. return retrieval-ready chunks
     """
+
+    ingestion_batch_id = create_ingestion_batch_id()
 
     page_records = extract_pdf_pages(
         file_path=file_path,
@@ -126,6 +148,7 @@ def build_document_chunks(
     enriched_pages = enrich_pages_with_metadata(
         page_records=page_records,
         document_id=document_id,
+        ingestion_batch_id=ingestion_batch_id,
     )
 
     chunks = build_chunks_from_pages(
