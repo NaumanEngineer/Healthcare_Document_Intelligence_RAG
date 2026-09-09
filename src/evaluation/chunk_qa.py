@@ -14,6 +14,8 @@ def get_chunk_lengths(chunks: list[dict]) -> list[int]:
 
     return [
         len(chunk.get("text", ""))
+        if isinstance(chunk.get("text", ""), str)
+        else 0
         for chunk in chunks
     ]
 
@@ -30,13 +32,18 @@ def find_empty_chunks(chunks: list[dict]) -> list[str]:
 
         if not isinstance(text, str) or not text.strip():
             empty_chunk_ids.append(
-                chunk.get("chunk_id", "<missing_chunk_id>")
+                chunk.get(
+                    "chunk_id",
+                    "<missing_chunk_id>",
+                )
             )
 
     return empty_chunk_ids
 
 
-def find_duplicate_chunk_ids(chunks: list[dict]) -> list[str]:
+def find_duplicate_chunk_ids(
+    chunks: list[dict],
+) -> list[str]:
     """
     Return duplicate chunk IDs.
     """
@@ -63,7 +70,8 @@ def find_short_chunks(
     min_chars: int = DEFAULT_MIN_CHUNK_CHARS,
 ) -> list[str]:
     """
-    Return chunk IDs for non-empty chunks below the minimum size.
+    Return chunk IDs for non-empty chunks below
+    the prototype minimum-size threshold.
     """
 
     short_chunk_ids = []
@@ -77,7 +85,10 @@ def find_short_chunks(
             and len(text) < min_chars
         ):
             short_chunk_ids.append(
-                chunk.get("chunk_id", "<missing_chunk_id>")
+                chunk.get(
+                    "chunk_id",
+                    "<missing_chunk_id>",
+                )
             )
 
     return short_chunk_ids
@@ -88,7 +99,8 @@ def find_long_chunks(
     max_chars: int = DEFAULT_MAX_CHUNK_CHARS,
 ) -> list[str]:
     """
-    Return chunk IDs for chunks above the maximum QA threshold.
+    Return chunk IDs above the prototype
+    maximum-size QA threshold.
     """
 
     long_chunk_ids = []
@@ -96,47 +108,95 @@ def find_long_chunks(
     for chunk in chunks:
         text = chunk.get("text", "")
 
-        if isinstance(text, str) and len(text) > max_chars:
+        if (
+            isinstance(text, str)
+            and len(text) > max_chars
+        ):
             long_chunk_ids.append(
-                chunk.get("chunk_id", "<missing_chunk_id>")
+                chunk.get(
+                    "chunk_id",
+                    "<missing_chunk_id>",
+                )
             )
 
     return long_chunk_ids
 
 
-def find_missing_provenance(chunks: list[dict]) -> list[str]:
+def find_missing_provenance(
+    chunks: list[dict],
+) -> list[str]:
     """
-    Return chunk IDs for records missing core provenance fields.
+    Return chunk IDs for records containing missing
+    or invalid core provenance.
+
+    Required textual provenance:
+    - chunk_id
+    - document_id
+    - version
+    - status
+    - source_file
+
+    Required numeric provenance:
+    - page: positive integer, excluding bool
+    - chunk_number: positive integer, excluding bool
     """
 
-    required_fields = {
+    required_string_fields = {
         "chunk_id",
         "document_id",
         "version",
         "status",
         "source_file",
-        "page",
-        "chunk_number",
     }
 
     failed = []
 
     for chunk in chunks:
-        missing = [
-            field
-            for field in required_fields
-            if chunk.get(field) in (None, "")
-        ]
+        invalid = False
 
-        if missing:
+        for field in required_string_fields:
+            value = chunk.get(field)
+
+            if (
+                not isinstance(value, str)
+                or not value.strip()
+            ):
+                invalid = True
+                break
+
+        page = chunk.get("page")
+        chunk_number = chunk.get(
+            "chunk_number"
+        )
+
+        if (
+            not isinstance(page, int)
+            or isinstance(page, bool)
+            or page <= 0
+        ):
+            invalid = True
+
+        if (
+            not isinstance(chunk_number, int)
+            or isinstance(chunk_number, bool)
+            or chunk_number <= 0
+        ):
+            invalid = True
+
+        if invalid:
             failed.append(
-                chunk.get("chunk_id", "<missing_chunk_id>")
+                chunk.get(
+                    "chunk_id",
+                    "<missing_chunk_id>",
+                )
             )
 
     return failed
 
 
-def classify_chunk_quality(report: dict) -> str:
+def classify_chunk_quality(
+    report: dict,
+) -> str:
     """
     Classify overall chunk QA status.
 
@@ -144,10 +204,11 @@ def classify_chunk_quality(report: dict) -> str:
     - zero chunks
     - empty chunks
     - duplicate chunk IDs
-    - missing provenance
+    - invalid/missing provenance
 
     review:
-    - short or long chunks exist
+    - short chunks
+    - long chunks
 
     passed:
     - no blocking or review findings
@@ -159,10 +220,16 @@ def classify_chunk_quality(report: dict) -> str:
     if report["empty_chunk_count"] > 0:
         return "failed"
 
-    if report["duplicate_chunk_id_count"] > 0:
+    if (
+        report["duplicate_chunk_id_count"]
+        > 0
+    ):
         return "failed"
 
-    if report["missing_provenance_count"] > 0:
+    if (
+        report["missing_provenance_count"]
+        > 0
+    ):
         return "failed"
 
     if report["short_chunk_count"] > 0:
@@ -180,14 +247,32 @@ def build_chunk_qa_report(
     max_chars: int = DEFAULT_MAX_CHUNK_CHARS,
 ) -> dict:
     """
-    Build QA metrics for retrieval-ready chunks.
+    Build structural and heuristic QA metrics
+    for retrieval-ready chunks.
+
+    This QA layer does not replace the canonical
+    chunk metadata validator.
+
+    Canonical metadata validation checks whether
+    a chunk is structurally valid.
+
+    Chunk QA checks whether a collection of valid
+    chunks appears operationally healthy.
     """
 
-    lengths = get_chunk_lengths(chunks)
+    lengths = get_chunk_lengths(
+        chunks
+    )
 
-    empty_chunks = find_empty_chunks(chunks)
+    empty_chunks = find_empty_chunks(
+        chunks
+    )
 
-    duplicate_chunk_ids = find_duplicate_chunk_ids(chunks)
+    duplicate_chunk_ids = (
+        find_duplicate_chunk_ids(
+            chunks
+        )
+    )
 
     short_chunks = find_short_chunks(
         chunks,
@@ -199,37 +284,78 @@ def build_chunk_qa_report(
         max_chars=max_chars,
     )
 
-    missing_provenance = find_missing_provenance(chunks)
+    missing_provenance = (
+        find_missing_provenance(
+            chunks
+        )
+    )
 
     report = {
         "total_chunks": len(chunks),
+
         "average_chunk_length": (
             mean(lengths)
             if lengths
             else 0
         ),
+
         "minimum_chunk_length": (
             min(lengths)
             if lengths
             else 0
         ),
+
         "maximum_chunk_length": (
             max(lengths)
             if lengths
             else 0
         ),
-        "empty_chunk_count": len(empty_chunks),
-        "empty_chunk_ids": empty_chunks,
-        "duplicate_chunk_id_count": len(duplicate_chunk_ids),
-        "duplicate_chunk_ids": duplicate_chunk_ids,
-        "short_chunk_count": len(short_chunks),
-        "short_chunk_ids": short_chunks,
-        "long_chunk_count": len(long_chunks),
-        "long_chunk_ids": long_chunks,
-        "missing_provenance_count": len(missing_provenance),
-        "missing_provenance_chunk_ids": missing_provenance,
+
+        "empty_chunk_count": (
+            len(empty_chunks)
+        ),
+
+        "empty_chunk_ids": (
+            empty_chunks
+        ),
+
+        "duplicate_chunk_id_count": (
+            len(duplicate_chunk_ids)
+        ),
+
+        "duplicate_chunk_ids": (
+            duplicate_chunk_ids
+        ),
+
+        "short_chunk_count": (
+            len(short_chunks)
+        ),
+
+        "short_chunk_ids": (
+            short_chunks
+        ),
+
+        "long_chunk_count": (
+            len(long_chunks)
+        ),
+
+        "long_chunk_ids": (
+            long_chunks
+        ),
+
+        "missing_provenance_count": (
+            len(missing_provenance)
+        ),
+
+        "missing_provenance_chunk_ids": (
+            missing_provenance
+        ),
     }
 
-    report["quality_status"] = classify_chunk_quality(report)
+    report["quality_status"] = (
+        classify_chunk_quality(
+            report
+        )
+    )
 
     return report
