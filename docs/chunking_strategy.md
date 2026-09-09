@@ -98,3 +98,4 @@ This prevents broken words from appearing at chunk boundaries.
 
 The current prototype does not guarantee sentence-aligned overlap. Sentence fragments may still occur, which is accepted as a documented limitation to keep the implementation simple and transparent.
 
+
