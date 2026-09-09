@@ -108,4 +108,86 @@ def test_missing_document_id_raises_error():
         chunk_page_record(page_record)
 
 
+from src.preprocessing.build_chunks import (
+    clean_page_record,
+    enrich_pages_with_metadata,
+    build_chunks_from_pages,
+)
 
+
+def test_clean_page_record_preserves_metadata():
+    page = {
+        "document_id": "DOC-001",
+        "page": 1,
+        "text": "Operational   escalation.",
+        "source_file": "DOC-001_operational_escalation_policy.pdf",
+    }
+
+    result = clean_page_record(page)
+
+    assert result["document_id"] == "DOC-001"
+    assert result["page"] == 1
+    assert result["source_file"] == (
+        "DOC-001_operational_escalation_policy.pdf"
+    )
+    assert result["text"] == "Operational escalation."
+
+
+def test_enrichment_adds_batch_lineage():
+    pages = [
+        {
+            "document_id": "DOC-001",
+            "page": 1,
+            "text": "Example.",
+            "source_file": (
+                "DOC-001_operational_escalation_policy.pdf"
+            ),
+        }
+    ]
+
+    enriched = enrich_pages_with_metadata(
+        page_records=pages,
+        document_id="DOC-001",
+        ingestion_batch_id="TEST-BATCH-001",
+    )
+
+    assert enriched[0]["ingestion_batch_id"] == "TEST-BATCH-001"
+    assert enriched[0]["version"] == "1.0"
+    assert enriched[0]["status"] == "Active"
+
+
+def test_build_chunks_from_enriched_pages():
+    pages = [
+        {
+            "document_id": "DOC-001",
+            "title": "Operational Escalation Policy",
+            "document_type": "Operational Policy",
+            "source_type": "Synthetic",
+            "version": "1.0",
+            "effective_date": "2026-01-01",
+            "status": "Active",
+            "source_file": (
+                "DOC-001_operational_escalation_policy.pdf"
+            ),
+            "page": 1,
+            "text": (
+                "Operational escalation guidance "
+                "requires executive review."
+            ),
+            "ingestion_batch_id": "TEST-BATCH-001",
+        }
+    ]
+
+    chunks = build_chunks_from_pages(
+        page_records=pages,
+        target_chars=100,
+        overlap_chars=10,
+    )
+
+    assert len(chunks) >= 1
+    assert chunks[0]["document_id"] == "DOC-001"
+    assert chunks[0]["status"] == "Active"
+    assert chunks[0]["ingestion_batch_id"] == "TEST-BATCH-001"
+    assert chunks[0]["chunk_id"].startswith(
+        "DOC-001-V1.0-P001-C"
+    )
