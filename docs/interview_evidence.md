@@ -37,3 +37,18 @@ I also created an ingestion QA layer that classifies ingestion runs as passed, r
 The design reused governance patterns from my earlier NHS Operational Data Platform, including lineage, quality status and batch traceability.
 
 The architecture is currently local and deliberately simple, but the Python components are designed so the storage and orchestration layer can later migrate to Microsoft Fabric or Azure without rewriting the core ingestion logic.
+
+
+## Week 17 Day 3 — Chunking and Retrieval Metadata
+
+I designed the chunking layer for a governed healthcare RAG system.
+
+Rather than using blind fixed-length splitting, I used a paragraph-first approach with word-boundary-aware fallback splitting and controlled overlap.
+
+Each chunk preserves document provenance and receives a version-aware identifier containing document ID, version, page and chunk ordinal.
+
+I also introduced a canonical metadata contract covering document lifecycle, source, version, effective date and page provenance.
+
+Chunks are validated before they are considered retrieval-ready, and a separate QA layer checks for empty chunks, duplicates, invalid provenance and abnormal chunk sizes.
+
+This reused data modelling and quality principles from my earlier NHS Operational Data Platform and prepared the architecture for later Microsoft Fabric and Azure deployment.
