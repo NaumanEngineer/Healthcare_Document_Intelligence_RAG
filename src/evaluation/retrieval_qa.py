@@ -6,13 +6,12 @@ def reciprocal_rank(
     expected_id: str,
 ) -> float:
     """
-    Return reciprocal rank for the expected result.
+    Return reciprocal rank for an expected result.
 
-    Example:
-    expected result at rank 1 -> 1.0
-    expected result at rank 2 -> 0.5
-    expected result at rank 3 -> 0.333...
-    not retrieved -> 0.0
+    Rank 1 -> 1.0
+    Rank 2 -> 0.5
+    Rank 3 -> 0.333...
+    Missing -> 0.0
     """
 
     for rank, chunk_id in enumerate(
@@ -25,14 +24,11 @@ def reciprocal_rank(
     return 0.0
 
 
-def top_k_success(
-    retrieved_ids: list[str],
-    expected_id: str,
+def validate_k(
     k: int,
-) -> bool:
+) -> None:
     """
-    Return True when the expected result appears
-    within the first k retrieved results.
+    Validate a top-k evaluation parameter.
     """
 
     if (
@@ -44,7 +40,22 @@ def top_k_success(
             "k must be a positive integer"
         )
 
-    return expected_id in retrieved_ids[:k]
+
+def top_k_success(
+    retrieved_ids: list[str],
+    expected_id: str,
+    k: int,
+) -> bool:
+    """
+    Return True when the expected chunk appears
+    inside the first k results.
+    """
+
+    validate_k(k)
+
+    return expected_id in (
+        retrieved_ids[:k]
+    )
 
 
 def document_success(
@@ -54,17 +65,10 @@ def document_success(
 ) -> bool:
     """
     Return True when the expected document appears
-    within the first k results.
+    inside the first k retrieval results.
     """
 
-    if (
-        not isinstance(k, int)
-        or isinstance(k, bool)
-        or k <= 0
-    ):
-        raise ValueError(
-            "k must be a positive integer"
-        )
+    validate_k(k)
 
     return any(
         result.get("document_id")
@@ -80,18 +84,11 @@ def page_success(
     k: int,
 ) -> bool:
     """
-    Return True when the expected document and page
-    appear within the first k results.
+    Return True when the expected document/page
+    combination appears inside the first k results.
     """
 
-    if (
-        not isinstance(k, int)
-        or isinstance(k, bool)
-        or k <= 0
-    ):
-        raise ValueError(
-            "k must be a positive integer"
-        )
+    validate_k(k)
 
     return any(
         result.get("document_id")
@@ -104,11 +101,15 @@ def page_success(
 
 def active_only_success(
     results: list[dict],
-) -> bool:
+) -> bool | None:
     """
-    Confirm that every returned result belongs to
-    an Active document.
+    Confirm all returned evidence belongs to Active documents.
+
+    None means no evidence was returned.
     """
+
+    if not results:
+        return None
 
     return all(
         result.get("status") == "Active"
@@ -124,8 +125,16 @@ def build_retrieval_qa_result(
     expected_page: int | None = None,
 ) -> dict:
     """
-    Build QA metrics for one retrieval evaluation query.
+    Build retrieval QA metrics for one evaluation query.
     """
+
+    if (
+        not isinstance(query_id, str)
+        or not query_id.strip()
+    ):
+        raise ValueError(
+            "query_id must be a non-empty string"
+        )
 
     retrieved_ids = [
         result.get("chunk_id")
@@ -136,63 +145,64 @@ def build_retrieval_qa_result(
     report = {
         "query_id": query_id,
         "result_count": len(results),
+        "no_results": len(results) == 0,
         "active_only": active_only_success(
             results
         ),
     }
 
     if expected_chunk_id is not None:
-        report["top_1_chunk_success"] = (
-            top_k_success(
-                retrieved_ids,
-                expected_chunk_id,
-                1,
-            )
+        report[
+            "top_1_chunk_success"
+        ] = top_k_success(
+            retrieved_ids,
+            expected_chunk_id,
+            1,
         )
 
-        report["top_3_chunk_success"] = (
-            top_k_success(
-                retrieved_ids,
-                expected_chunk_id,
-                3,
-            )
+        report[
+            "top_3_chunk_success"
+        ] = top_k_success(
+            retrieved_ids,
+            expected_chunk_id,
+            3,
         )
 
-        report["reciprocal_rank"] = (
-            reciprocal_rank(
-                retrieved_ids,
-                expected_chunk_id,
-            )
+        report[
+            "reciprocal_rank"
+        ] = reciprocal_rank(
+            retrieved_ids,
+            expected_chunk_id,
         )
 
     if expected_document_id is not None:
-        report["top_1_document_success"] = (
-            document_success(
-                results,
-                expected_document_id,
-                1,
-            )
+        report[
+            "top_1_document_success"
+        ] = document_success(
+            results,
+            expected_document_id,
+            1,
         )
 
-        report["top_3_document_success"] = (
-            document_success(
-                results,
-                expected_document_id,
-                3,
-            )
+        report[
+            "top_3_document_success"
+        ] = document_success(
+            results,
+            expected_document_id,
+            3,
         )
 
     if (
         expected_document_id is not None
         and expected_page is not None
     ):
-        report["top_3_page_success"] = (
-            page_success(
-                results,
-                expected_document_id,
-                expected_page,
-                3,
-            )
+        report[
+            "top_3_page_success"
+        ] = page_success(
+            results,
+            expected_document_id,
+            expected_page,
+            3,
         )
 
     return report
