@@ -84,7 +84,7 @@ Optional fields may include:
 
 ## Embedding Output Contract
 
-Each successfully embedded chunk should preserve the complete validated chunk record and add:
+Each successfully embedded chunk preserves the complete validated chunk record and adds:
 
 - vector
 - embedding_model
@@ -107,42 +107,55 @@ Zero vectors must not be silently accepted.
 
 ---
 
-### embedding_model
+## Embedding Model Identity
 
-Identifies the embedding model and configuration used to create the vector.
+The `embedding_model` field identifies the embedding model/configuration used to create a vector.
 
-The model identifier should be specific enough to distinguish incompatible embedding configurations.
+The current prototype records:
 
-Query vectors and chunk vectors must use the same embedding configuration.
+`sentence-transformers/all-MiniLM-L6-v2`
+
+The model identifier is treated as part of the embedding contract.
+
+Query vectors and stored chunk vectors must use compatible embedding configurations.
+
+Future deployments may also record:
+
+- model revision
+- provider
+- normalization configuration
+- deployment identifier
+
+These are deferred until Azure or another hosted embedding service is introduced.
 
 ---
 
-### embedding_dimensions
+## Embedding Dimensions
 
-The number of values in the embedding vector.
-
-This must equal:
+The `embedding_dimensions` field records:
 
 `len(vector)`
 
-and must also match the query embedding dimensions used during similarity search.
+Vector dimensions must be validated before similarity comparison.
+
+A query vector must have the same dimensions as the chunk vectors it is compared against.
+
+Dimension mismatch is treated as an explicit failure rather than silently continuing.
 
 ---
 
-### text_hash
+## text_hash
 
-A deterministic fingerprint of the chunk text.
-
-The initial implementation may use SHA-256.
+A deterministic SHA-256 fingerprint is created from the exact text used to generate the embedding.
 
 Purpose:
 
 - detect changed chunk text
 - identify stale embeddings
 - support reproducibility
-- reduce the risk of reusing an embedding for changed evidence
+- prevent accidental reuse of embeddings after content changes
 
-The text hash is not a replacement for the human-readable chunk ID.
+The text hash is not a replacement for the readable chunk ID.
 
 ---
 
@@ -157,17 +170,32 @@ The pipeline must not:
 - mix partially incompatible embedding configurations
 - treat missing vectors as valid retrieval records
 
-Potential failure states include:
+When multiple chunks are embedded, a failure must identify the affected `chunk_id`.
 
+Potential failures include:
+
+- invalid chunk metadata
 - empty text
 - model failure
-- invalid numeric output
+- malformed numeric output
 - non-finite vector values
 - zero-norm vector
-- unexpected dimensions
-- incompatible model configuration
+- dimension mismatch
+- incompatible embedding configuration
 
-Failures should be surfaced for QA and review.
+---
+
+## Batch Embedding Behaviour
+
+The local prototype processes chunks sequentially.
+
+If one chunk fails:
+
+- the failure is surfaced immediately
+- the failing chunk ID is included in the error
+- the failed record is not silently omitted
+
+More advanced retry or partial-success handling is deferred until a production batch-processing design is needed.
 
 ---
 
@@ -223,13 +251,7 @@ Prototype default lifecycle policy:
 - Draft documents are excluded
 - Archived documents are excluded
 
-This avoids the following failure:
-
-1. semantic search retrieves only a very small top-k set
-2. most of those chunks are later removed by lifecycle filtering
-3. eligible chunks ranked slightly lower are never considered
-
-The preferred order is:
+Preferred order:
 
 Query
 → Query Embedding
@@ -249,11 +271,9 @@ The default prototype retrieval policy is strict:
 
 `status == Active`
 
-This is intentionally stronger than simply preferring Active documents.
+Future versions may support intentionally configured access to historical or Superseded content for audit purposes.
 
-Future versions may support explicit policy-controlled retrieval of historical or Superseded content for audit or comparison purposes.
-
-Such behaviour must be intentionally configured rather than happening automatically.
+Such behaviour must never happen accidentally.
 
 ---
 
@@ -265,19 +285,9 @@ Two retrieval counts are distinguished.
 
 Number of eligible semantic candidates retrieved before optional reranking.
 
-Example:
-
-`candidate_k = 10`
-
 ### final_k
 
 Number of evidence chunks ultimately returned.
-
-Example:
-
-`final_k = 3`
-
-This distinction avoids ambiguity around the meaning of `top_k`.
 
 The relationship should normally satisfy:
 
@@ -331,9 +341,8 @@ Possible insufficient-evidence situations include:
 - no eligible chunks
 - no valid vectors
 - incompatible embedding configurations
-- fewer useful results than requested
 - weak semantic evidence
-- evidence that does not answer the user question
+- evidence that does not answer the question
 - evidence available only in excluded lifecycle states
 
 The retrieval layer should be able to return an empty or insufficient-evidence outcome rather than forcing a result.
@@ -354,14 +363,6 @@ This allows failures to be classified as:
 6. evidence-selection failure
 7. generation failure
 
-This separation improves:
-
-- debugging
-- explainability
-- evaluation
-- governance
-- system safety
-
 A language model should not be used to conceal poor retrieval.
 
 ---
@@ -373,12 +374,10 @@ Every retrieved evidence unit must remain traceable to:
 - document ID
 - document title
 - document version
-- document lifecycle status
+- lifecycle status
 - source file
 - page
 - chunk ID
-
-Where available, `source_location` should provide a durable reference to the original document.
 
 Provenance must survive:
 
@@ -391,48 +390,19 @@ ingestion
 
 ---
 
-## Source Field Definitions
-
-The term `source` is avoided when it could be ambiguous.
-
-The canonical fields are:
-
-### source_type
-
-Describes the origin category.
-
-Examples:
-
-- Synthetic
-- Public
-
-### source_file
-
-The source filename used during ingestion.
-
-### source_location
-
-Optional durable location or URI for the original source.
-
-This distinction improves traceability and future citation design.
-
----
-
 ## Version Awareness
 
 Version metadata is part of retrieval governance.
 
 A semantically strong result from an obsolete version must not automatically outrank appropriate current evidence.
 
-Chunk IDs include document version for readability and traceability.
+Readable chunk IDs contain document version.
 
 Example:
 
 `DOC-001-V1.0-P003-C002`
 
-However, chunk IDs are not content hashes.
-
-The separate `text_hash` field provides content-change detection.
+The separate `text_hash` detects changes to the actual chunk content.
 
 ---
 
@@ -447,7 +417,7 @@ Before similarity search, the system should verify:
 - finite vector values
 - non-zero vector norms
 
-Mixing embedding configurations may produce meaningless similarity scores.
+Mixing incompatible embedding configurations may produce meaningless similarity scores.
 
 ---
 
@@ -455,43 +425,15 @@ Mixing embedding configurations may produce meaningless similarity scores.
 
 Adjacent chunks may contain controlled overlap.
 
-This improves context preservation but may also cause multiple highly similar chunks from the same page to dominate retrieval results.
+This improves context preservation but may result in repeated evidence appearing among the highest-ranked retrieval candidates.
 
-Future retrieval evaluation should therefore inspect:
+Future retrieval evaluation should inspect:
 
-- repeated evidence
-- near-duplicate candidates
-- excessive same-page concentration
+- near-duplicate evidence
+- repeated same-page chunks
+- excessive same-document concentration
 
-Deduplication or diversity controls may later be introduced if evaluation shows they are necessary.
-
----
-
-## Lifecycle Changes
-
-Document lifecycle metadata may change after embeddings are created.
-
-For example:
-
-`Active → Superseded`
-
-This does not necessarily require immediate re-embedding because lifecycle status is metadata rather than semantic content.
-
-However, retrieval eligibility must use the current lifecycle metadata rather than assuming the status that existed at embedding time.
-
----
-
-## Stale Embedding Detection
-
-If chunk text changes, the existing embedding may become stale.
-
-The `text_hash` field provides a mechanism to compare:
-
-stored text hash
-vs
-current chunk text hash
-
-A mismatch indicates that the embedding should be regenerated.
+Deduplication or diversity controls will only be introduced if evaluation demonstrates a need.
 
 ---
 
@@ -511,15 +453,15 @@ Planned uses include:
 
 DuckDB is not the embedding model.
 
-DuckDB is also not treated as the core vector-search system in the initial implementation.
+DuckDB is also not treated as the primary vector-search engine in the initial implementation.
 
 ---
 
 ## Planned Parquet Knowledge Layer
 
-Validated chunks may later be written to Parquet.
+Validated chunks may later be persisted to Parquet.
 
-Conceptual local flow:
+Conceptual local architecture:
 
 Validated Chunks
 → Parquet
@@ -532,14 +474,14 @@ This provides a local lakehouse-style learning environment before future Microso
 
 ## Future Microsoft Fabric Mapping
 
-The local architecture is intentionally designed to evolve toward:
+The local architecture is intentionally designed to evolve from:
 
 Python
 + Parquet
 + DuckDB
 + local embedding abstraction
 
-to:
+toward:
 
 Fabric OneLake
 + Lakehouse
@@ -547,19 +489,17 @@ Fabric OneLake
 + Azure AI embedding services
 + governed enterprise retrieval
 
-The current Python components should remain independent of storage technology where practical.
+The core Python processing logic should remain independent of storage technology where practical.
 
 ---
 
 ## QA Boundaries
 
-Different QA layers have different responsibilities.
+Different QA layers have separate responsibilities.
 
 ### Ingestion QA
 
 Evaluates document extraction and page-level processing.
-
-It must not be used to calculate chunk-level metrics.
 
 ### Chunk Metadata Validation
 
@@ -567,22 +507,25 @@ Determines whether one chunk satisfies the canonical structural contract.
 
 ### Chunk QA
 
-Evaluates chunk quality characteristics such as:
+Evaluates retrieval-unit quality characteristics such as:
 
 - empty chunks
 - duplicate IDs
 - abnormal chunk sizes
 - provenance problems
 
-### Future Embedding QA
+### Embedding QA
 
-Will evaluate:
+The embedding layer validates:
 
-- missing vectors
-- invalid vectors
-- dimension mismatches
-- stale embeddings
-- incompatible embedding configurations
+- nonempty vectors
+- numeric vector values
+- finite values
+- non-zero vector norm
+- expected dimensions
+- text-hash consistency
+
+Future embedding QA may also assess batch-wide model consistency.
 
 ### Future Retrieval QA
 
@@ -596,18 +539,14 @@ Will evaluate:
 - irrelevant retrieval
 - insufficient-evidence handling
 
-These layers should remain separate.
-
 ---
 
 ## QA Acceptance Gates
 
-QA results should influence whether data proceeds to later stages.
-
 Prototype policy:
 
 - `failed` → do not proceed automatically
-- `review` → requires inspection before downstream use
+- `review` → inspect before downstream use
 - `passed` → eligible to continue, subject to canonical validation
 
 The exact production policy may later become more sophisticated.
@@ -629,23 +568,13 @@ The initial retrieval implementation will first establish:
 - candidate retrieval
 - retrieval evaluation
 
-Reranking will be introduced only after the initial retrieval behaviour can be measured.
-
----
-
-## Batch Lineage
-
-`ingestion_batch_id` is an optional lineage field.
-
-A batch identifier should be created once per ingestion run and propagated through all derived pages and chunks from that run.
-
-Later, embedding runs may also receive their own batch or model-version metadata if needed.
+Reranking will be introduced only after initial retrieval behaviour can be measured.
 
 ---
 
 ## Citation Readiness
 
-The retrieval layer is designed to provide enough provenance for later citations.
+The retrieval layer is designed to preserve enough provenance for later citations.
 
 A basic citation can be constructed from:
 
@@ -654,9 +583,9 @@ A basic citation can be constructed from:
 - page
 - source file
 
-Where available, `source_location` should provide a durable path or URI.
+Where available, `source_location` should provide a durable source reference.
 
-Citation generation itself is deferred until the grounded-answer stage.
+Citation generation itself is deferred until grounded-answer generation.
 
 ---
 
@@ -664,7 +593,6 @@ Citation generation itself is deferred until the grounded-answer stage.
 
 The current prototype does not yet include:
 
-- embedding implementation
 - vector indexing
 - semantic retrieval
 - retrieval thresholds
@@ -678,7 +606,7 @@ The current prototype does not yet include:
 - production authentication
 - production access controls
 
-These capabilities will be added incrementally after the underlying contracts are validated.
+The local embedding layer currently uses a lightweight sentence-transformer model for learning and prototype evaluation.
 
 ---
 
@@ -686,6 +614,4 @@ These capabilities will be added incrementally after the underlying contracts ar
 
 The retrieval system follows this principle:
 
-> Evidence must be structurally valid, provenance-preserving, lifecycle-appropriate and semantically relevant before it is presented to a language model.
-
-This keeps retrieval quality and governance as first-class parts of the healthcare RAG architecture.
+> Evidence must be structurally valid, provenance-preserving, lifecycle-appropriate, embedding-compatible and semantically relevant before it is presented to a language model.
