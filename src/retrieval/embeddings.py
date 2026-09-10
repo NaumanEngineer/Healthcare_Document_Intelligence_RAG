@@ -44,6 +44,28 @@ def load_embedding_model(
     return SentenceTransformer(model_name)
 
 
+def get_model_identifier(
+    model: SentenceTransformer,
+    fallback_name: str = DEFAULT_EMBEDDING_MODEL,
+) -> str:
+    """
+    Return the embedding model identifier used by the prototype.
+
+    The current implementation deliberately uses the configured
+    model name as the canonical identifier.
+
+    More detailed model revision/configuration tracking may be
+    introduced later when provider-specific deployment is added.
+    """
+
+    if not isinstance(fallback_name, str) or not fallback_name.strip():
+        raise ValueError(
+            "fallback_name must be a non-empty string"
+        )
+
+    return fallback_name
+
+
 def validate_vector(vector: list[float]) -> None:
     """
     Validate an embedding vector.
@@ -51,6 +73,7 @@ def validate_vector(vector: list[float]) -> None:
     Rules:
     - must be a non-empty list
     - values must be numeric
+    - booleans are rejected
     - values must be finite
     - vector must have non-zero norm
     """
@@ -89,6 +112,37 @@ def validate_vector(vector: list[float]) -> None:
         )
 
 
+def validate_embedding_dimensions(
+    vector: list[float],
+    expected_dimensions: int,
+) -> None:
+    """
+    Validate vector length against the expected embedding dimensions.
+    """
+
+    if not isinstance(expected_dimensions, int):
+        raise TypeError(
+            "expected_dimensions must be an integer"
+        )
+
+    if isinstance(expected_dimensions, bool):
+        raise TypeError(
+            "expected_dimensions must be an integer"
+        )
+
+    if expected_dimensions <= 0:
+        raise ValueError(
+            "expected_dimensions must be greater than 0"
+        )
+
+    if len(vector) != expected_dimensions:
+        raise ValueError(
+            "Embedding dimension mismatch: "
+            f"expected {expected_dimensions}, "
+            f"got {len(vector)}"
+        )
+
+
 def embed_text(
     text: str,
     model: SentenceTransformer,
@@ -124,10 +178,16 @@ def embed_chunk(
     model_name: str = DEFAULT_EMBEDDING_MODEL,
 ) -> dict:
     """
-    Convert one validated chunk into an embedding-ready record.
+    Convert one validated chunk into an embedded record.
 
     The complete chunk record is preserved and embedding metadata
     is added.
+
+    Added fields:
+    - vector
+    - embedding_model
+    - embedding_dimensions
+    - text_hash
     """
 
     validate_chunk_metadata(chunk)
@@ -139,10 +199,15 @@ def embed_chunk(
         model=model,
     )
 
+    model_identifier = get_model_identifier(
+        model=model,
+        fallback_name=model_name,
+    )
+
     embedded_chunk = {
         **chunk,
         "vector": vector,
-        "embedding_model": model_name,
+        "embedding_model": model_identifier,
         "embedding_dimensions": len(vector),
         "text_hash": create_text_hash(text),
     }
@@ -159,17 +224,29 @@ def embed_chunks(
     Embed multiple validated chunks.
 
     Failed chunks are not silently omitted.
-    Any embedding failure is surfaced to the caller.
+
+    Any failure identifies the chunk that caused the problem.
     """
 
     embedded_chunks = []
 
     for chunk in chunks:
-        embedded_chunk = embed_chunk(
-            chunk=chunk,
-            model=model,
-            model_name=model_name,
+        chunk_id = chunk.get(
+            "chunk_id",
+            "<missing_chunk_id>",
         )
+
+        try:
+            embedded_chunk = embed_chunk(
+                chunk=chunk,
+                model=model,
+                model_name=model_name,
+            )
+
+        except Exception as exc:
+            raise RuntimeError(
+                f"Embedding failed for chunk '{chunk_id}': {exc}"
+            ) from exc
 
         embedded_chunks.append(
             embedded_chunk
