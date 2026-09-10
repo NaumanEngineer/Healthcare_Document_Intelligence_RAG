@@ -152,3 +152,187 @@ def test_embed_chunks_does_not_silently_skip_failure():
             chunks,
             model=FakeModel(),
         )
+
+
+
+from src.evaluation.retrieval_qa import (
+    reciprocal_rank,
+    top_k_success,
+    document_success,
+    page_success,
+    active_only_success,
+    build_retrieval_qa_result,
+)
+
+from src.retrieval.reranker import (
+    rerank_candidates,
+)
+
+
+def build_retrieval_result(
+    chunk_id: str,
+    document_id: str,
+    page: int,
+    similarity_score: float,
+    status: str = "Active",
+) -> dict:
+    return {
+        "chunk_id": chunk_id,
+        "document_id": document_id,
+        "page": page,
+        "status": status,
+        "similarity_score": similarity_score,
+        "text": "Example evidence.",
+    }
+
+
+def test_reciprocal_rank_first():
+    result = reciprocal_rank(
+        ["A", "B", "C"],
+        "A",
+    )
+
+    assert result == 1.0
+
+
+def test_reciprocal_rank_second():
+    result = reciprocal_rank(
+        ["A", "B", "C"],
+        "B",
+    )
+
+    assert result == 0.5
+
+
+def test_reciprocal_rank_missing():
+    result = reciprocal_rank(
+        ["A", "B", "C"],
+        "X",
+    )
+
+    assert result == 0.0
+
+
+def test_top_k_success():
+    assert top_k_success(
+        ["A", "B", "C"],
+        "B",
+        2,
+    )
+
+
+def test_document_success():
+    results = [
+        build_retrieval_result(
+            "C1",
+            "DOC-001",
+            1,
+            0.9,
+        )
+    ]
+
+    assert document_success(
+        results,
+        "DOC-001",
+        1,
+    )
+
+
+def test_page_success():
+    results = [
+        build_retrieval_result(
+            "C1",
+            "DOC-001",
+            3,
+            0.9,
+        )
+    ]
+
+    assert page_success(
+        results,
+        "DOC-001",
+        3,
+        1,
+    )
+
+
+def test_active_only_success():
+    results = [
+        build_retrieval_result(
+            "C1",
+            "DOC-001",
+            1,
+            0.9,
+            status="Active",
+        )
+    ]
+
+    assert active_only_success(
+        results
+    )
+
+
+def test_active_only_fails_for_superseded():
+    results = [
+        build_retrieval_result(
+            "C1",
+            "DOC-001",
+            1,
+            0.9,
+            status="Superseded",
+        )
+    ]
+
+    assert not active_only_success(
+        results
+    )
+
+
+def test_reranker_orders_highest_similarity_first():
+    candidates = [
+        build_retrieval_result(
+            "LOW",
+            "DOC-001",
+            1,
+            0.40,
+        ),
+        build_retrieval_result(
+            "HIGH",
+            "DOC-001",
+            1,
+            0.90,
+        ),
+    ]
+
+    reranked = rerank_candidates(
+        candidates
+    )
+
+    assert reranked[0]["chunk_id"] == "HIGH"
+    assert reranked[0]["rerank_rank"] == 1
+
+
+def test_retrieval_qa_result():
+    results = [
+        build_retrieval_result(
+            "EXPECTED",
+            "DOC-001",
+            3,
+            0.90,
+        )
+    ]
+
+    report = build_retrieval_qa_result(
+        query_id="Q001",
+        results=results,
+        expected_chunk_id="EXPECTED",
+        expected_document_id="DOC-001",
+        expected_page=3,
+    )
+
+    assert report["top_1_chunk_success"]
+    assert report["top_1_document_success"]
+    assert report["top_3_page_success"]
+    assert report["active_only"]
+
+
