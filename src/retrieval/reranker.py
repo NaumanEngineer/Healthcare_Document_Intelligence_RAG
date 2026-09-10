@@ -5,15 +5,25 @@ def rerank_candidates(
     candidates: list[dict],
 ) -> list[dict]:
     """
-    Apply a lightweight deterministic reranking policy.
+    Apply a deterministic second-stage reranking baseline.
 
-    Current prototype priorities:
+    Current priorities:
+
     1. Active lifecycle status
-    2. higher semantic similarity
+    2. semantic similarity score
     3. deterministic chunk ID tie-break
 
-    More advanced reranking models are intentionally deferred.
+    This is deliberately a transparent baseline rather
+    than a learned AI reranking model.
     """
+
+    if not isinstance(
+        candidates,
+        list,
+    ):
+        raise TypeError(
+            "candidates must be a list"
+        )
 
     reranked = sorted(
         candidates,
