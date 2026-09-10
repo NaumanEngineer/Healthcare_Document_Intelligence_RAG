@@ -57,7 +57,7 @@ def cosine_similarity(
     vector_b: list[float],
 ) -> float:
     """
-    Compute cosine similarity between two vectors.
+    Compute cosine similarity between two embedding vectors.
     """
 
     validate_vector(vector_a)
@@ -99,11 +99,11 @@ def filter_eligible_chunks(
     embedded_chunks: list[dict],
 ) -> list[dict]:
     """
-    Keep only chunks that satisfy canonical metadata
-    validation and retrieval eligibility.
+    Keep only chunks that pass canonical metadata validation
+    and satisfy retrieval eligibility.
     """
 
-    eligible = []
+    eligible_chunks = []
 
     for chunk in embedded_chunks:
         validate_chunk_metadata(chunk)
@@ -111,9 +111,11 @@ def filter_eligible_chunks(
         if is_chunk_retrieval_eligible(
             chunk
         ):
-            eligible.append(chunk)
+            eligible_chunks.append(
+                chunk
+            )
 
-    return eligible
+    return eligible_chunks
 
 
 def validate_embedding_compatibility(
@@ -125,13 +127,28 @@ def validate_embedding_compatibility(
     Validate that query and chunk embeddings are compatible.
     """
 
-    validate_vector(query_vector)
+    validate_vector(
+        query_vector
+    )
+
+    if (
+        not isinstance(embedding_model, str)
+        or not embedding_model.strip()
+    ):
+        raise ValueError(
+            "embedding_model must be a non-empty string"
+        )
 
     query_dimensions = len(
         query_vector
     )
 
     for chunk in embedded_chunks:
+        chunk_id = chunk.get(
+            "chunk_id",
+            "<missing_chunk_id>",
+        )
+
         chunk_model = chunk.get(
             "embedding_model"
         )
@@ -147,17 +164,28 @@ def validate_embedding_compatibility(
         if chunk_model != embedding_model:
             raise ValueError(
                 "Embedding model mismatch for "
-                f"chunk '{chunk.get('chunk_id')}'"
+                f"chunk '{chunk_id}'"
             )
 
-        if not isinstance(
-            chunk_dimensions,
-            int,
+        if (
+            not isinstance(
+                chunk_dimensions,
+                int,
+            )
+            or isinstance(
+                chunk_dimensions,
+                bool,
+            )
+            or chunk_dimensions <= 0
         ):
             raise ValueError(
                 "Missing or invalid embedding_dimensions "
-                f"for chunk '{chunk.get('chunk_id')}'"
+                f"for chunk '{chunk_id}'"
             )
+
+        validate_vector(
+            vector
+        )
 
         validate_embedding_dimensions(
             vector,
@@ -166,7 +194,8 @@ def validate_embedding_compatibility(
 
         if chunk_dimensions != query_dimensions:
             raise ValueError(
-                "Query and chunk embedding dimensions do not match"
+                "Query and chunk embedding dimensions "
+                f"do not match for chunk '{chunk_id}'"
             )
 
 
@@ -175,10 +204,10 @@ def score_chunks(
     query_vector: list[float],
 ) -> list[dict]:
     """
-    Calculate semantic similarity scores.
+    Calculate semantic similarity scores for eligible chunks.
     """
 
-    scored = []
+    scored_chunks = []
 
     for chunk in eligible_chunks:
         similarity_score = (
@@ -188,16 +217,14 @@ def score_chunks(
             )
         )
 
-        scored_chunk = {
-            **chunk,
-            "similarity_score": similarity_score,
-        }
-
-        scored.append(
-            scored_chunk
+        scored_chunks.append(
+            {
+                **chunk,
+                "similarity_score": similarity_score,
+            }
         )
 
-    return scored
+    return scored_chunks
 
 
 def rank_candidates(
@@ -205,10 +232,19 @@ def rank_candidates(
     candidate_k: int,
 ) -> list[dict]:
     """
-    Return highest-scoring semantic candidates.
+    Return the highest-scoring semantic candidates.
     """
 
-    ranked = sorted(
+    if (
+        not isinstance(candidate_k, int)
+        or isinstance(candidate_k, bool)
+        or candidate_k <= 0
+    ):
+        raise ValueError(
+            "candidate_k must be a positive integer"
+        )
+
+    ranked_chunks = sorted(
         scored_chunks,
         key=lambda item: item[
             "similarity_score"
@@ -216,24 +252,24 @@ def rank_candidates(
         reverse=True,
     )
 
-    candidates = ranked[
+    candidates = ranked_chunks[
         :candidate_k
     ]
 
-    results = []
+    ranked_candidates = []
 
-    for rank, chunk in enumerate(
+    for candidate_rank, chunk in enumerate(
         candidates,
         start=1,
     ):
-        results.append(
+        ranked_candidates.append(
             {
                 **chunk,
-                "candidate_rank": rank,
+                "candidate_rank": candidate_rank,
             }
         )
 
-    return results
+    return ranked_candidates
 
 
 def select_final_results(
@@ -243,9 +279,18 @@ def select_final_results(
     """
     Return final retrieval evidence.
 
-    Reranking is not yet implemented, so the current
-    prototype keeps semantic candidate order.
+    Reranking is not yet implemented, so semantic candidate
+    order is preserved.
     """
+
+    if (
+        not isinstance(final_k, int)
+        or isinstance(final_k, bool)
+        or final_k <= 0
+    ):
+        raise ValueError(
+            "final_k must be a positive integer"
+        )
 
     final_candidates = (
         candidates[:final_k]
@@ -295,6 +340,8 @@ def semantic_search(
     5. score eligible chunks
     6. rank semantic candidates
     7. select final evidence
+
+    Returns an empty list when no eligible evidence exists.
     """
 
     validate_query(
@@ -333,11 +380,9 @@ def semantic_search(
         candidate_k=candidate_k,
     )
 
-    final_results = (
-        select_final_results(
-            candidates=candidates,
-            final_k=final_k,
-        )
+    final_results = select_final_results(
+        candidates=candidates,
+        final_k=final_k,
     )
 
     return final_results
