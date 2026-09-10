@@ -15,8 +15,6 @@ DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 def create_text_hash(text: str) -> str:
     """
     Create a deterministic SHA-256 hash of chunk text.
-
-    The hash helps detect stale embeddings when chunk text changes.
     """
 
     if not isinstance(text, str) or not text.strip():
@@ -49,13 +47,7 @@ def get_model_identifier(
     fallback_name: str = DEFAULT_EMBEDDING_MODEL,
 ) -> str:
     """
-    Return the embedding model identifier used by the prototype.
-
-    The current implementation deliberately uses the configured
-    model name as the canonical identifier.
-
-    More detailed model revision/configuration tracking may be
-    introduced later when provider-specific deployment is added.
+    Return the embedding-model identifier used by the prototype.
     """
 
     if not isinstance(fallback_name, str) or not fallback_name.strip():
@@ -66,12 +58,14 @@ def get_model_identifier(
     return fallback_name
 
 
-def validate_vector(vector: list[float]) -> None:
+def validate_vector(
+    vector: list[float],
+) -> None:
     """
     Validate an embedding vector.
 
     Rules:
-    - must be a non-empty list
+    - vector must be a non-empty list
     - values must be numeric
     - booleans are rejected
     - values must be finite
@@ -117,7 +111,7 @@ def validate_embedding_dimensions(
     expected_dimensions: int,
 ) -> None:
     """
-    Validate vector length against the expected embedding dimensions.
+    Validate vector length against expected embedding dimensions.
     """
 
     if not isinstance(expected_dimensions, int):
@@ -148,7 +142,7 @@ def embed_text(
     model: SentenceTransformer,
 ) -> list[float]:
     """
-    Embed one non-empty text value using the supplied model.
+    Embed one non-empty text value.
     """
 
     if not isinstance(text, str) or not text.strip():
@@ -179,15 +173,6 @@ def embed_chunk(
 ) -> dict:
     """
     Convert one validated chunk into an embedded record.
-
-    The complete chunk record is preserved and embedding metadata
-    is added.
-
-    Added fields:
-    - vector
-    - embedding_model
-    - embedding_dimensions
-    - text_hash
     """
 
     validate_chunk_metadata(chunk)
@@ -222,8 +207,6 @@ def embed_chunks(
 ) -> list[dict]:
     """
     Embed multiple validated chunks.
-
-    Failed chunks are not silently omitted.
 
     Any failure identifies the chunk that caused the problem.
     """
