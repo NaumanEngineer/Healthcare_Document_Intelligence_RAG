@@ -1,2 +1,5 @@
 pymupdf
 pytest
+sentence-transformers
+duckdb
+pyarrow
