@@ -52,3 +52,23 @@ I also introduced a canonical metadata contract covering document lifecycle, sou
 Chunks are validated before they are considered retrieval-ready, and a separate QA layer checks for empty chunks, duplicates, invalid provenance and abnormal chunk sizes.
 
 This reused data modelling and quality principles from my earlier NHS Operational Data Platform and prepared the architecture for later Microsoft Fabric and Azure deployment.
+
+
+
+## Week 17 Day 4 — Governed Semantic Retrieval
+
+I built the semantic retrieval layer for a healthcare document-intelligence system.
+
+Validated document chunks are embedded locally while preserving source, page, version and lifecycle metadata.
+
+I added vector validation, model and dimension tracking, and deterministic text hashes so embedding records can be checked for compatibility and stale content.
+
+I then introduced Parquet and DuckDB as a local analytical knowledge catalogue for metadata, QA and retrieval-evaluation analysis.
+
+The retrieval layer applies lifecycle eligibility before semantic candidate selection, so Superseded, Draft or Archived content does not win simply because it is semantically similar.
+
+I also implemented retrieval metrics including Top-1, Top-3, reciprocal rank, document success and page success.
+
+This means retrieval quality can be evaluated independently from the language model before grounded generation is introduced.
+
+The local design is intentionally modular so it can later migrate toward Microsoft Fabric, OneLake and Azure AI services.
