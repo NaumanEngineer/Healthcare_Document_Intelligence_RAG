@@ -1,0 +1,11 @@
+{
+  "evaluation_status": "development_example",
+  "queries_evaluated": 6,
+  "top_1_document_success_rate": 0.83,
+  "top_3_document_success_rate": 1.0,
+  "top_1_chunk_success_rate": 0.67,
+  "top_3_chunk_success_rate": 0.83,
+  "mean_reciprocal_rank": 0.78,
+  "active_only_compliance_rate": 1.0,
+  "insufficient_evidence_cases": 1
+}
