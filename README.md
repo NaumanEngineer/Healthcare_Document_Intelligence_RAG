@@ -91,3 +91,25 @@ If sufficient evidence cannot be retrieved, the system should state that the ava
 ## Status
 
 Week 17 — RAG foundation and document-intelligence design.
+
+
+## Governed Retrieval Layer
+
+The current project includes a local semantic retrieval pipeline for validated healthcare document chunks.
+
+The retrieval layer includes:
+
+- local sentence-transformer embeddings
+- vector validation
+- embedding model and dimension tracking
+- deterministic text hashes
+- lifecycle-aware metadata filtering
+- cosine similarity search
+- candidate vs final retrieval separation
+- deterministic reranking baseline
+- retrieval-quality metrics
+- insufficient-evidence handling
+
+A local Parquet and DuckDB catalogue supports SQL-based inspection of chunk metadata, lifecycle status and future retrieval-evaluation outputs.
+
+Retrieval is intentionally evaluated independently from answer generation.
