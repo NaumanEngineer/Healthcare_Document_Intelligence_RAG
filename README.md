@@ -84,37 +84,36 @@ If no reliable evidence exists, the system abstains instead of guessing.
 
 ```mermaid
 flowchart TD
+    A[Operational Documents] --> B[PDF Ingestion]
+    B --> C[Cleaning]
+    C --> D[Metadata Enrichment]
+    D --> E[Chunking]
+    E --> F[Chunk QA]
 
-A[Operational Documents] --> B[PDF Ingestion]
-B --> C[Cleaning]
-C --> D[Metadata Enrichment]
-D --> E[Chunking]
-E --> F[Chunk QA]
+    F --> G[Embeddings]
+    G --> H[Parquet Knowledge Layer]
+    H --> I[DuckDB QA and Analytics]
 
-F --> G[Embeddings]
-G --> H[Parquet Knowledge Layer]
-H --> I[DuckDB QA and Analytics]
+    G --> J[Lifecycle Filtering]
+    J --> K[Semantic Retrieval]
+    K --> L[Candidate Ranking]
+    L --> M[Deterministic Reranking]
+    M --> N[Evidence Threshold]
+    N --> O[Final Evidence Set]
 
-G --> J[Lifecycle Filtering]
-J --> K[Semantic Retrieval]
-K --> L[Candidate Ranking]
-L --> M[Deterministic Reranking]
-M --> N[Evidence Threshold]
-N --> O[Final Evidence Set]
+    O --> P[Evidence Formatter]
+    P --> Q[Grounded Prompt]
 
-O --> P[Evidence Formatter]
-P --> Q[Grounded Prompt]
+    Q --> R{Sufficient Evidence?}
 
-Q --> R{Sufficient Evidence?}
+    R -->|No| S[Controlled Abstention]
+    R -->|Yes| T[LLM Interface]
 
-R -->|No| S[Controlled Abstention]
-R -->|Yes| T[LLM Interface]
-
-T --> U[Generated Answer]
-U --> V[Citation Validation]
-V --> W[Faithfulness Screening]
-W --> X[Human Review]
-
+    T --> U[Generated Answer]
+    U --> V[Citation Validation]
+    V --> W[Faithfulness Screening]
+    W --> X[Human Review]
+```
 
 ## Portfolio Evidence
 
@@ -132,7 +131,6 @@ This repository demonstrates:
 - test-driven Python development
 - enterprise migration thinking
 - NHS management communication
-
 
 ## Evaluation Status
 
