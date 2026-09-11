@@ -114,3 +114,30 @@ T --> U[Generated Answer]
 U --> V[Citation Validation]
 V --> W[Faithfulness Screening]
 W --> X[Human Review]
+
+
+## Portfolio Evidence
+
+This repository demonstrates:
+
+- healthcare-focused data engineering
+- metadata and provenance design
+- semantic retrieval
+- RAG architecture
+- lifecycle-aware governance
+- evaluation engineering
+- hallucination-risk controls
+- prompt-injection awareness
+- SQL-style analytical thinking with DuckDB
+- test-driven Python development
+- enterprise migration thinking
+- NHS management communication
+
+
+## Evaluation Status
+
+The evaluation framework is implemented.
+
+Performance metrics should only be reported from executed benchmark runs.
+
+Placeholder or illustrative figures are not presented as measured project results.
