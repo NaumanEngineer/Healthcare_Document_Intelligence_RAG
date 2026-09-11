@@ -80,4 +80,15 @@ I designed the answer-generation layer so the language model cannot act as an in
 
 Retrieval determines what evidence is eligible, generation only explains that evidence, and a separate evaluation layer checks citation and abstention behaviour.
 
+
+## Week 17 Day 5 — Grounded Answer Generation
+
+I built a controlled answer-generation layer on top of the governed retrieval system.
+
+The language model is not allowed to act as an independent knowledge source. It receives only approved retrieval evidence, while source document, version, page and chunk provenance remain attached.
+
+I implemented explicit abstention when evidence is unavailable, prompt rules that treat retrieved document text as untrusted source material, and a separate answer-QA layer that detects unsupported document or chunk citations.
+
+The generation interface is provider-independent, allowing the same architecture to later use Azure OpenAI or another enterprise model service.
+
 I also defined explicit controls for insufficient evidence, lifecycle status, clinical scope and prompt injection from retrieved document content.
