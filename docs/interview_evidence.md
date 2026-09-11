@@ -92,3 +92,12 @@ I implemented explicit abstention when evidence is unavailable, prompt rules tha
 The generation interface is provider-independent, allowing the same architecture to later use Azure OpenAI or another enterprise model service.
 
 I also defined explicit controls for insufficient evidence, lifecycle status, clinical scope and prompt injection from retrieved document content.
+
+
+## Week 17 Day 6 — Evaluation Design
+
+I separated retrieval evaluation from answer evaluation so the RAG system can be tested at the correct failure points.
+
+Retrieval metrics measure whether the correct current evidence is found, while answer evaluation checks citation validity, abstention, scope compliance and faithfulness to the retrieved evidence.
+
+I also included lifecycle-conflict, insufficient-evidence and prompt-injection test cases rather than evaluating only easy successful queries.
