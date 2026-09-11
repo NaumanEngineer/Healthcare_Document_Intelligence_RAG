@@ -72,3 +72,12 @@ I also implemented retrieval metrics including Top-1, Top-3, reciprocal rank, do
 This means retrieval quality can be evaluated independently from the language model before grounded generation is introduced.
 
 The local design is intentionally modular so it can later migrate toward Microsoft Fabric, OneLake and Azure AI services.
+
+
+## Week 17 Day 5 — Grounded Generation Design
+
+I designed the answer-generation layer so the language model cannot act as an independent source of operational guidance.
+
+Retrieval determines what evidence is eligible, generation only explains that evidence, and a separate evaluation layer checks citation and abstention behaviour.
+
+I also defined explicit controls for insufficient evidence, lifecycle status, clinical scope and prompt injection from retrieved document content.
