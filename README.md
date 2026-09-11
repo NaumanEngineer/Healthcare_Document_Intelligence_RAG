@@ -1,115 +1,116 @@
 # Healthcare Document Intelligence RAG
 
-## Overview
+## Project Overview
 
-This project develops a governed healthcare document intelligence system using Retrieval-Augmented Generation (RAG).
+This project is a governed operational-policy intelligence assistant designed for NHS-style environments.
 
-The system is designed to retrieve relevant evidence from healthcare operational and governance documents before generating an answer.
+Its purpose is to help staff find the right current operational guidance quickly, trace every answer back to source evidence, and avoid unsupported responses when the available evidence is weak or out of scope.
 
-The project focuses on:
+The system is not designed as a generic chatbot.
 
-- healthcare document ingestion
-- text preprocessing
-- structure-aware chunking
-- metadata design
-- semantic retrieval
-- hybrid retrieval concepts
-- reranking
-- evidence-grounded generation
-- citations
-- retrieval evaluation
-- governance
-- human oversight
+It is designed as a controlled evidence assistant for operational guidance.
 
-## Problem
+---
 
-Healthcare organisations operate with large volumes of policies, procedures, escalation guidance and operational documentation.
+## NHS Operational Problem
 
-Important information can be difficult to locate quickly, particularly when staff need to understand which document, section or policy supports an operational decision.
+Operational teams may need to work across multiple documents such as:
 
-This project explores how RAG can provide evidence-grounded access to healthcare documentation while preserving traceability and human review.
+- escalation policies
+- workforce procedures
+- bed-capacity guidance
+- winter-pressure plans
+- business-continuity procedures
+- governance standards
 
-## Intended Users
+Common risks include:
 
-Potential users include:
+- time lost searching multiple documents
+- staff finding outdated guidance
+- inconsistent interpretation
+- weak traceability
+- difficulty proving which source supported an answer
+- AI systems generating plausible but unsupported responses
 
-- NHS information and performance teams
-- operational managers
-- governance teams
-- winter-pressure teams
-- workforce planners
-- analysts
-- healthcare AI engineers
+This project addresses those risks through governed retrieval and grounded answer generation.
 
-## Current Scope
+---
 
-The initial implementation will use synthetic and/or publicly available non-sensitive documents.
+## What the System Does
 
-No patient-identifiable information will be used.
+The current prototype can:
 
-## Planned Architecture
+- ingest and clean operational documents
+- preserve source and lifecycle metadata
+- split documents into traceable evidence chunks
+- create semantic embeddings
+- retrieve evidence based on meaning
+- exclude Superseded, Draft and Archived guidance
+- detect stale embeddings
+- rank and rerank candidate evidence
+- reject weak evidence using a configurable threshold
+- format approved evidence for generation
+- prevent normal generation when no reliable evidence exists
+- generate answers only from supplied evidence
+- preserve source, version, page and chunk provenance
+- validate citation identifiers
+- perform baseline claim-support checks
+- record retrieval and answer evaluation metrics
 
-Documents  
-→ Ingestion  
-→ Cleaning  
-→ Chunking  
-→ Metadata  
-→ Embeddings  
-→ Retrieval  
-→ Reranking  
-→ Evidence-Grounded Generation  
-→ Citation  
-→ Human Review
+---
 
-## Governance Principles
+## Plain-English Example
 
-The language model is not treated as the source of truth.
+A manager asks:
 
-Retrieved source evidence is the primary basis for generated answers.
+> What should operational leadership do during escalation?
 
+The system:
 
-## Document Ingestion Layer
+1. searches the approved operational-document corpus
+2. identifies the most relevant current policy evidence
+3. excludes outdated versions
+4. checks whether the evidence is strong enough
+5. supplies only approved evidence to the language model
+6. generates a concise explanation
+7. shows the supporting source, version, page and chunk
+8. validates that the model did not invent a source
 
-The current implementation includes a governed PDF ingestion pipeline using PyMuPDF.
+If no reliable evidence exists, the system abstains instead of guessing.
 
-The ingestion layer:
+---
 
-- validates approved PDF inputs
-- extracts page-level text
-- preserves document and page provenance
-- normalizes formatting noise
-- attaches version-aware document metadata
-- records extraction quality
-- supports automated ingestion QA tests
+## Architecture
 
-Raw source documents remain unchanged in `data/raw/`.
+```mermaid
+flowchart TD
 
-The ingestion architecture is intentionally modular so it can later support chunking, retrieval, Azure services and Microsoft Fabric storage/orchestration.
+A[Operational Documents] --> B[PDF Ingestion]
+B --> C[Cleaning]
+C --> D[Metadata Enrichment]
+D --> E[Chunking]
+E --> F[Chunk QA]
 
-If sufficient evidence cannot be retrieved, the system should state that the available evidence is insufficient rather than fabricate policy content.
+F --> G[Embeddings]
+G --> H[Parquet Knowledge Layer]
+H --> I[DuckDB QA and Analytics]
 
-## Status
+G --> J[Lifecycle Filtering]
+J --> K[Semantic Retrieval]
+K --> L[Candidate Ranking]
+L --> M[Deterministic Reranking]
+M --> N[Evidence Threshold]
+N --> O[Final Evidence Set]
 
-Week 17 — RAG foundation and document-intelligence design.
+O --> P[Evidence Formatter]
+P --> Q[Grounded Prompt]
 
+Q --> R{Sufficient Evidence?}
 
-## Governed Retrieval Layer
+R -->|No| S[Controlled Abstention]
+R -->|Yes| T[LLM Interface]
 
-The current project includes a local semantic retrieval pipeline for validated healthcare document chunks.
-
-The retrieval layer includes:
-
-- local sentence-transformer embeddings
-- vector validation
-- embedding model and dimension tracking
-- deterministic text hashes
-- lifecycle-aware metadata filtering
-- cosine similarity search
-- candidate vs final retrieval separation
-- deterministic reranking baseline
-- retrieval-quality metrics
-- insufficient-evidence handling
-
-A local Parquet and DuckDB catalogue supports SQL-based inspection of chunk metadata, lifecycle status and future retrieval-evaluation outputs.
-
-Retrieval is intentionally evaluated independently from answer generation.
+T --> U[Generated Answer]
+U --> V[Citation Validation]
+V --> W[Faithfulness Screening]
+W --> X[Human Review]
