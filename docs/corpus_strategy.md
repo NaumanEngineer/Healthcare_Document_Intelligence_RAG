@@ -126,3 +126,41 @@ Documents should only enter the retrieval corpus after basic validation of:
 The first implementation should begin with a deliberately small corpus of approximately 5–10 documents.
 
 This allows retrieval failures to be inspected manually before scaling the system.
+
+
+## Week 18 Retrieval Stress Corpus
+
+The Week 18 corpus introduces controlled ambiguity and lifecycle conflicts.
+
+### Superseded Content
+
+An older synthetic version of the Operational Escalation Policy is included.
+
+Purpose:
+
+- test lifecycle filtering
+- confirm semantic similarity cannot override document status
+- verify Superseded guidance does not enter normal generation
+
+### Near-Duplicate Content
+
+Operational Pressure Coordination Guidance overlaps with several existing operational documents.
+
+Purpose:
+
+- make semantic retrieval less artificially easy
+- test document ranking
+- compare semantic, lexical and later hybrid retrieval
+
+### Draft Content
+
+A Draft Emergency Pressure Framework is included.
+
+Purpose:
+
+- confirm Draft content is excluded from normal retrieval
+- test governance behaviour independently from semantic relevance
+
+The stress corpus intentionally contains overlapping terminology.
+
+This supports more meaningful retrieval evaluation than a corpus in which every document has completely distinct vocabulary.
