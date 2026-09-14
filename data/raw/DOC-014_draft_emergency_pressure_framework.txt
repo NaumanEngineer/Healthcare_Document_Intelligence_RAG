@@ -1,0 +1,22 @@
+Draft Emergency Pressure Framework
+
+Document ID: DOC-014
+Version: 0.1
+Effective Date: 2026-06-01
+Status: Draft
+
+Section: Proposed Emergency Pressure Response
+
+Operational leadership should monitor emergency demand, staffing pressure, ambulance handover delays and available bed capacity.
+
+The proposed framework recommends coordinated review of whole-site pressure and service resilience.
+
+Section: Proposed Escalation Response
+
+During severe pressure, operational teams may coordinate capacity, workforce and patient-flow actions.
+
+This framework is still under development.
+
+It has not been approved for operational use.
+
+Synthetic training document — not an official NHS policy.
