@@ -1,0 +1,22 @@
+Operational Pressure Coordination Guidance
+
+Document ID: DOC-013
+Version: 1.0
+Effective Date: 2026-01-01
+Status: Active
+
+Section: Operational Pressure
+
+Operational pressure may occur when emergency demand, workforce constraints, bed occupancy, ambulance handover delays or discharge pressures affect normal service delivery.
+
+Operational leadership should consider several indicators together rather than relying on one metric.
+
+Section: Coordination
+
+During periods of significant pressure, operational teams should coordinate actions across bed management, workforce, emergency care, discharge and site-flow functions.
+
+Actions should be assigned to responsible teams and reviewed as operational conditions change.
+
+This document provides general coordination guidance and does not replace specialist escalation procedures.
+
+Synthetic training document — not an official NHS policy.
