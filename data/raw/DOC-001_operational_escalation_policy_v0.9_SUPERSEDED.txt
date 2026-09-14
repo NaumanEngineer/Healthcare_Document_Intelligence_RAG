@@ -1,0 +1,26 @@
+Operational Escalation Policy
+
+Document ID: DOC-001
+Version: 0.9
+Effective Date: 2025-01-01
+Status: Superseded
+
+Section: Escalation Triggers
+
+Operational escalation should be considered when system pressure increases across emergency demand, workforce availability, bed capacity and patient flow.
+
+Operational leadership should review escalation indicators and coordinate appropriate actions across relevant services.
+
+Section: Escalation Actions
+
+During significant operational pressure, leadership should review capacity, staffing, discharge arrangements and emergency flow.
+
+Actions should be recorded and reviewed during the period of escalation.
+
+IMPORTANT GOVERNANCE NOTE:
+
+This document is a synthetic superseded training version.
+
+It must not be used as current operational guidance.
+
+Synthetic training document — not an official NHS policy.
