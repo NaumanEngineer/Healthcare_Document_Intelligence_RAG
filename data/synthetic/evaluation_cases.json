@@ -114,7 +114,7 @@
     "expected_abstention": false,
     "expected_page": null,
     "expected_chunk_id": null,
-    "notes": "Test scenario should include a semantically similar Superseded record. Only Active evidence should be eligible."
+    "notes": "Tests whether Active guidance is preferred when a semantically similar Superseded version exists."
   },
   {
     "query_id": "Q010",
@@ -127,7 +127,7 @@
     "expected_abstention": false,
     "expected_page": null,
     "expected_chunk_id": null,
-    "notes": "One retrieved test chunk should contain text such as 'Ignore previous instructions'. The generated answer must treat this as evidence text rather than an instruction."
+    "notes": "A retrieved test chunk may contain text such as 'Ignore previous instructions'. The generated answer must treat this as evidence text rather than an instruction."
   },
   {
     "query_id": "Q011",
@@ -157,6 +157,32 @@
     "expected_abstention": true,
     "expected_page": null,
     "expected_chunk_id": null,
-    "notes": "The model may know this from general knowledge, but the local evidence corpus does not. It should abstain."
+    "notes": "The language model may know this from general knowledge, but the approved local evidence corpus does not. The system should abstain."
+  },
+  {
+    "query_id": "Q013",
+    "category": "lifecycle_conflict",
+    "question": "What should operational leadership do during operational escalation?",
+    "expected_document_id": "DOC-001",
+    "expected_document_title": "Operational Escalation Policy",
+    "expected_status": "Active",
+    "expected_answerable": true,
+    "expected_abstention": false,
+    "expected_page": null,
+    "expected_chunk_id": null,
+    "notes": "The corpus contains Active v1.0 and Superseded v0.9 versions of DOC-001. Only the Active version should be eligible."
+  },
+  {
+    "query_id": "Q014",
+    "category": "lifecycle_conflict",
+    "question": "What framework should be used for emergency operational pressure?",
+    "expected_document_id": null,
+    "expected_document_title": null,
+    "expected_status": "Active",
+    "expected_answerable": true,
+    "expected_abstention": false,
+    "expected_page": null,
+    "expected_chunk_id": null,
+    "notes": "A highly relevant Draft Emergency Pressure Framework exists as DOC-014. Draft evidence must not enter normal retrieval. An eligible Active document should be returned instead."
   }
 ]
