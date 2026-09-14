@@ -133,9 +133,6 @@ def validate_embedding_freshness(
     """
     Confirm that the stored embedding still represents
     the current chunk text.
-
-    If the text has changed after embedding, the stored
-    text_hash will no longer match.
     """
 
     chunk_id = chunk.get(
@@ -144,6 +141,7 @@ def validate_embedding_freshness(
     )
 
     text = chunk.get("text")
+
     stored_hash = chunk.get(
         "text_hash"
     )
@@ -168,13 +166,36 @@ def validate_embedding_freshness(
         )
 
 
+def validate_embedding_freshness_batch(
+    embedded_chunks: list[dict],
+) -> None:
+    """
+    Validate text-hash freshness for every eligible chunk.
+    """
+
+    for chunk in embedded_chunks:
+        validate_embedding_freshness(
+            chunk
+        )
+
+
 def filter_eligible_chunks(
     embedded_chunks: list[dict],
 ) -> list[dict]:
     """
-    Keep only chunks satisfying canonical metadata
-    validation and lifecycle retrieval eligibility.
+    Keep only chunks that satisfy metadata validation
+    and lifecycle retrieval eligibility.
+
+    This is the Active-only governance boundary.
     """
+
+    if not isinstance(
+        embedded_chunks,
+        list,
+    ):
+        raise TypeError(
+            "embedded_chunks must be a list"
+        )
 
     eligible_chunks = []
 
@@ -199,8 +220,8 @@ def validate_embedding_compatibility(
     embedding_model: str,
 ) -> None:
     """
-    Confirm that query and document embeddings
-    are technically compatible.
+    Confirm that query and chunk embeddings were created
+    using compatible model and dimensional settings.
     """
 
     validate_vector(
@@ -278,19 +299,6 @@ def validate_embedding_compatibility(
             )
 
 
-def validate_embedding_freshness_batch(
-    embedded_chunks: list[dict],
-) -> None:
-    """
-    Validate text-hash freshness for all candidate chunks.
-    """
-
-    for chunk in embedded_chunks:
-        validate_embedding_freshness(
-            chunk
-        )
-
-
 def score_chunks(
     eligible_chunks: list[dict],
     query_vector: list[float],
@@ -302,9 +310,11 @@ def score_chunks(
     scored_chunks = []
 
     for chunk in eligible_chunks:
-        similarity_score = cosine_similarity(
-            query_vector,
-            chunk["vector"],
+        similarity_score = (
+            cosine_similarity(
+                query_vector,
+                chunk["vector"],
+            )
         )
 
         scored_chunks.append(
@@ -322,7 +332,7 @@ def rank_candidates(
     candidate_k: int,
 ) -> list[dict]:
     """
-    Select the strongest initial semantic candidates.
+    Return the strongest semantic candidates.
     """
 
     if (
@@ -368,12 +378,11 @@ def select_final_results(
     min_similarity: float | None = None,
 ) -> list[dict]:
     """
-    Select final evidence.
+    Select final retrieval evidence.
 
-    Weak evidence can be excluded using min_similarity.
-
-    No universal similarity threshold is assumed.
-    Threshold selection must be informed by evaluation.
+    Weak evidence may be rejected using min_similarity.
+    Lifecycle eligibility is checked again before a chunk
+    is allowed into the final evidence set.
     """
 
     if (
@@ -436,18 +445,16 @@ def semantic_search(
 
     query
     -> validation
-    -> lifecycle eligibility
+    -> Active-only lifecycle filtering
     -> query embedding
-    -> embedding compatibility
-    -> stale-embedding detection
+    -> embedding compatibility validation
+    -> stale-embedding validation
     -> cosine similarity
     -> candidate ranking
     -> deterministic reranking
-    -> similarity threshold
+    -> minimum evidence threshold
+    -> final lifecycle validation
     -> final evidence
-
-    Returning [] represents insufficient or unavailable
-    evidence rather than forcing an unrelated result.
     """
 
     validate_query(
@@ -457,8 +464,11 @@ def semantic_search(
         min_similarity=min_similarity,
     )
 
-    eligible_chunks = filter_eligible_chunks(
-        embedded_chunks
+    # Active-only filtering happens here.
+    eligible_chunks = (
+        filter_eligible_chunks(
+            embedded_chunks
+        )
     )
 
     if not eligible_chunks:
@@ -475,6 +485,7 @@ def semantic_search(
         embedding_model=embedding_model,
     )
 
+    # Stale embeddings are blocked before similarity scoring.
     validate_embedding_freshness_batch(
         eligible_chunks
     )
@@ -489,8 +500,10 @@ def semantic_search(
         candidate_k=candidate_k,
     )
 
-    reranked_candidates = rerank_candidates(
-        candidates
+    reranked_candidates = (
+        rerank_candidates(
+            candidates
+        )
     )
 
     final_results = select_final_results(
