@@ -13,7 +13,7 @@
   "faithfulness_screening_enabled": true,
   "evaluation_dataset": "data/synthetic/evaluation_cases.json",
   "test_status": {
-    "passed": null,
+    "passed": 302,
     "failed": 0,
     "errors": 0
   },
