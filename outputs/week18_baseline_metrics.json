@@ -1,0 +1,27 @@
+{
+  "baseline_name": "week17_semantic_rag",
+  "retrieval_mode": "semantic_only",
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "keyword_retrieval_enabled": false,
+  "hybrid_retrieval_enabled": false,
+  "reranking_enabled": true,
+  "lifecycle_filtering_enabled": true,
+  "stale_embedding_detection_enabled": true,
+  "evidence_threshold_supported": true,
+  "citation_validation_enabled": true,
+  "controlled_abstention_enabled": true,
+  "faithfulness_screening_enabled": true,
+  "evaluation_dataset": "data/synthetic/evaluation_cases.json",
+  "test_status": {
+    "passed": null,
+    "failed": 0,
+    "errors": 0
+  },
+  "measured_retrieval_metrics": {
+    "document_success_rate": null,
+    "abstention_accuracy": null,
+    "active_only_compliance_rate": null,
+    "mean_reciprocal_rank": null
+  },
+  "notes": "Baseline frozen before Week 18 BM25 and hybrid retrieval upgrades. Null metrics must not be presented as measured results."
+}
