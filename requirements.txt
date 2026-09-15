@@ -3,3 +3,4 @@ pytest
 sentence-transformers
 duckdb
 pyarrow
+rank-bm25
