@@ -4,14 +4,19 @@ import json
 import re
 from pathlib import Path
 
+
+# ============================================================
+# PROJECT IMPORTS
+# ============================================================
+
 from src.preprocessing.build_chunks import (
     build_document_chunks,
 )
 
 from src.retrieval.embeddings import (
-    load_embedding_model,
     embed_chunks,
     get_model_identifier,
+    load_embedding_model,
 )
 
 from src.retrieval.semantic_search import (
@@ -26,15 +31,29 @@ from src.retrieval.hybrid_search import (
     hybrid_search,
 )
 
+from src.retrieval.hybrid_search_rrf_only import (
+    hybrid_search_rrf_only,
+)
+
 from src.evaluation.retrieval_benchmark import (
     compare_methods_for_case,
+    evaluate_retrieval_results,
     summarise_benchmark,
+    summarise_method,
 )
 
 
+# ============================================================
+# PROJECT PATHS
+# ============================================================
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-RAW_DATA_DIR = PROJECT_ROOT / "data" / "raw"
+RAW_DATA_DIR = (
+    PROJECT_ROOT
+    / "data"
+    / "raw"
+)
 
 EVALUATION_FILE = (
     PROJECT_ROOT
@@ -50,6 +69,10 @@ OUTPUT_FILE = (
 )
 
 
+# ============================================================
+# EXPERIMENT CONFIGURATION
+# ============================================================
+
 TARGET_CHARS = 1000
 OVERLAP_CHARS = 150
 
@@ -57,16 +80,31 @@ SEMANTIC_K = 10
 KEYWORD_K = 10
 FINAL_K = 3
 
+# We deliberately leave thresholds disabled during this
+# baseline experiment.
+#
+# The purpose is to observe the untreated behaviour before
+# calibrating abstention/evidence sufficiency.
+
 SEMANTIC_MIN_SIMILARITY = None
 KEYWORD_MIN_SCORE = None
 MIN_RRF_SCORE = None
 
 
+# ============================================================
+# FILE / DOCUMENT HELPERS
+# ============================================================
+
 def extract_document_id(
     file_path: Path,
 ) -> str:
     """
-    Extract DOC-### from a filename.
+    Extract a canonical DOC-### identifier from a filename.
+
+    Example:
+
+        DOC-008_ambulance_handover_guidance.pdf
+        -> DOC-008
     """
 
     match = re.search(
@@ -77,7 +115,8 @@ def extract_document_id(
 
     if not match:
         raise ValueError(
-            f"Could not determine document ID from {file_path.name}"
+            "Could not determine document ID "
+            f"from filename: {file_path.name}"
         )
 
     return match.group(1).upper()
@@ -89,22 +128,40 @@ def parse_header_value(
     default: str,
 ) -> str:
     """
-    Read a simple 'Label: value' line from a synthetic TXT file.
+    Read a simple metadata line from a synthetic TXT file.
+
+    Example:
+
+        Status: Draft
+        Version: 0.1
     """
 
-    pattern = rf"^{re.escape(label)}\s*:\s*(.+)$"
+    pattern = (
+        rf"^{re.escape(label)}"
+        rf"\s*:\s*(.+)$"
+    )
 
     match = re.search(
         pattern,
         text,
-        flags=re.MULTILINE | re.IGNORECASE,
+        flags=(
+            re.MULTILINE
+            | re.IGNORECASE
+        ),
     )
 
     if match:
-        return match.group(1).strip()
+        return (
+            match.group(1)
+            .strip()
+        )
 
     return default
 
+
+# ============================================================
+# TXT CHUNKING ADAPTER
+# ============================================================
 
 def split_text_with_overlap(
     text: str,
@@ -112,12 +169,24 @@ def split_text_with_overlap(
     overlap_chars: int = OVERLAP_CHARS,
 ) -> list[str]:
     """
-    Lightweight deterministic chunking for the Week 18 TXT
-    lifecycle stress documents.
+    Deterministically split synthetic TXT documents into chunks.
 
-    PDFs continue to use the project's normal production
-    chunking pipeline.
+    PDFs continue to use the project's normal chunking pipeline.
+
+    TXT files are used for lifecycle stress tests such as:
+
+    - Superseded DOC-001 v0.9
+    - Active DOC-013
+    - Draft DOC-014
     """
+
+    if not isinstance(
+        text,
+        str,
+    ):
+        raise TypeError(
+            "text must be a string"
+        )
 
     cleaned = " ".join(
         text.split()
@@ -127,9 +196,11 @@ def split_text_with_overlap(
         return []
 
     if len(cleaned) <= target_chars:
-        return [cleaned]
+        return [
+            cleaned
+        ]
 
-    chunks = []
+    chunks: list[str] = []
 
     start = 0
 
@@ -139,6 +210,8 @@ def split_text_with_overlap(
             len(cleaned),
         )
 
+        # Prefer a word boundary rather than cutting
+        # directly through a word.
         if end < len(cleaned):
             boundary = cleaned.rfind(
                 " ",
@@ -161,8 +234,13 @@ def split_text_with_overlap(
         if end >= len(cleaned):
             break
 
-        next_start = end - overlap_chars
+        next_start = (
+            end
+            - overlap_chars
+        )
 
+        # Safety protection against accidental
+        # infinite loops.
         if next_start <= start:
             next_start = end
 
@@ -175,129 +253,183 @@ def build_txt_document_chunks(
     file_path: Path,
 ) -> list[dict]:
     """
-    Build benchmark chunks from the synthetic Week 18 TXT
-    lifecycle stress documents.
+    Build canonical chunk dictionaries from one synthetic TXT file.
     """
 
     text = file_path.read_text(
         encoding="utf-8"
     )
 
-    document_id = extract_document_id(
-        file_path
+    document_id = (
+        extract_document_id(
+            file_path
+        )
     )
 
-    version = parse_header_value(
-        text,
-        "Version",
-        "1.0",
+    title = (
+        parse_header_value(
+            text=text,
+            label="Title",
+            default=(
+                file_path.stem.replace(
+                    "_",
+                    " ",
+                )
+            ),
+        )
     )
 
-    effective_date = parse_header_value(
-        text,
-        "Effective Date",
-        "2026-01-01",
+    version = (
+        parse_header_value(
+            text=text,
+            label="Version",
+            default="1.0",
+        )
     )
 
-    status = parse_header_value(
-        text,
-        "Status",
-        "Active",
+    effective_date = (
+        parse_header_value(
+            text=text,
+            label="Effective Date",
+            default="2026-01-01",
+        )
     )
 
-    title = parse_header_value(
-        text,
-        "Title",
-        file_path.stem.replace(
-            "_",
+    status = (
+        parse_header_value(
+            text=text,
+            label="Status",
+            default="Active",
+        )
+    )
+
+    pieces = (
+        split_text_with_overlap(
+            text=text,
+            target_chars=TARGET_CHARS,
+            overlap_chars=OVERLAP_CHARS,
+        )
+    )
+
+    chunks: list[dict] = []
+
+    safe_version = (
+        version
+        .replace(
             " ",
-        ),
-    )
-
-    pieces = split_text_with_overlap(
-        text=text,
-    )
-
-    chunks = []
-
-    safe_version = version.replace(
-        " ",
-        "",
+            "",
+        )
     )
 
     for index, piece in enumerate(
         pieces,
         start=1,
     ):
+        chunk_id = (
+            f"{document_id}-"
+            f"V{safe_version}-"
+            f"P001-"
+            f"C{index:03d}"
+        )
+
+        chunk = {
+            "chunk_id": chunk_id,
+            "document_id": document_id,
+            "title": title,
+            "document_type": (
+                "Synthetic Operational Document"
+            ),
+            "source_type": "Synthetic",
+            "source_location": str(
+                file_path
+            ),
+            "version": version,
+            "effective_date": effective_date,
+            "status": status,
+            "source_file": (
+                file_path.name
+            ),
+            "page": 1,
+            "chunk_number": index,
+            "text": piece,
+        }
+
         chunks.append(
-            {
-                "chunk_id": (
-                    f"{document_id}-"
-                    f"V{safe_version}-"
-                    f"P001-"
-                    f"C{index:03d}"
-                ),
-                "document_id": document_id,
-                "title": title,
-                "document_type": (
-                    "Synthetic Operational Document"
-                ),
-                "source_type": "Synthetic",
-                "version": version,
-                "effective_date": effective_date,
-                "status": status,
-                "source_file": file_path.name,
-                "source_location": str(
-                    file_path
-                ),
-                "page": 1,
-                "chunk_number": index,
-                "text": piece,
-            }
+            chunk
         )
 
     return chunks
 
 
-def build_benchmark_corpus() -> list[dict]:
+# ============================================================
+# CORPUS BUILDING
+# ============================================================
+
+def get_raw_corpus_files(
+) -> list[Path]:
     """
-    Build chunks from all supported synthetic raw documents.
-
-    PDFs:
-        use the project's normal document chunking pipeline.
-
-    TXT lifecycle stress documents:
-        use a small deterministic benchmark adapter.
+    Return supported raw corpus files in deterministic order.
     """
 
     if not RAW_DATA_DIR.exists():
         raise FileNotFoundError(
-            f"Raw data directory not found: {RAW_DATA_DIR}"
+            "Raw corpus directory does not exist: "
+            f"{RAW_DATA_DIR}"
         )
-
-    all_chunks = []
 
     files = sorted(
         [
             path
-            for path in RAW_DATA_DIR.iterdir()
-            if path.suffix.lower()
-            in {".pdf", ".txt"}
-        ]
+            for path
+            in RAW_DATA_DIR.iterdir()
+            if (
+                path.is_file()
+                and path.suffix.lower()
+                in {
+                    ".pdf",
+                    ".txt",
+                }
+            )
+        ],
+        key=lambda path: path.name.lower(),
     )
 
     if not files:
         raise RuntimeError(
-            "No PDF or TXT documents found in data/raw"
+            "No PDF or TXT documents were found "
+            "inside data/raw."
         )
+
+    return files
+
+
+def build_benchmark_corpus(
+) -> list[dict]:
+    """
+    Build the complete Week 18 retrieval corpus.
+
+    PDF documents:
+        use build_document_chunks()
+
+    TXT stress documents:
+        use build_txt_document_chunks()
+    """
+
+    files = (
+        get_raw_corpus_files()
+    )
 
     print(
         f"Found {len(files)} raw corpus files."
     )
 
+    all_chunks: list[dict] = []
+
     for file_path in files:
-        document_id = extract_document_id(
-            file_path
+        document_id = (
+            extract_document_id(
+                file_path
+            )
         )
 
         print(
@@ -313,9 +445,15 @@ def build_benchmark_corpus() -> list[dict]:
                     file_path=str(
                         file_path
                     ),
-                    document_id=document_id,
-                    target_chars=TARGET_CHARS,
-                    overlap_chars=OVERLAP_CHARS,
+                    document_id=(
+                        document_id
+                    ),
+                    target_chars=(
+                        TARGET_CHARS
+                    ),
+                    overlap_chars=(
+                        OVERLAP_CHARS
+                    ),
                 )
             )
 
@@ -327,7 +465,8 @@ def build_benchmark_corpus() -> list[dict]:
             )
 
         print(
-            f"  -> {len(document_chunks)} chunks"
+            "  -> "
+            f"{len(document_chunks)} chunks"
         )
 
         all_chunks.extend(
@@ -336,16 +475,28 @@ def build_benchmark_corpus() -> list[dict]:
 
     if not all_chunks:
         raise RuntimeError(
-            "Corpus produced zero chunks."
+            "Corpus processing completed "
+            "but produced zero chunks."
         )
 
     return all_chunks
 
 
-def load_evaluation_cases() -> list[dict]:
+# ============================================================
+# EVALUATION DATASET
+# ============================================================
+
+def load_evaluation_cases(
+) -> list[dict]:
     """
-    Load the controlled Week 18 benchmark questions.
+    Load the Week 18 controlled evaluation dataset.
     """
+
+    if not EVALUATION_FILE.exists():
+        raise FileNotFoundError(
+            "Evaluation dataset not found: "
+            f"{EVALUATION_FILE}"
+        )
 
     with EVALUATION_FILE.open(
         "r",
@@ -360,68 +511,153 @@ def load_evaluation_cases() -> list[dict]:
         list,
     ):
         raise TypeError(
-            "Evaluation dataset must contain a JSON list."
+            "Evaluation dataset must contain "
+            "a JSON list."
+        )
+
+    if not cases:
+        raise ValueError(
+            "Evaluation dataset contains zero cases."
         )
 
     return cases
 
 
+# ============================================================
+# OUTPUT HELPERS
+# ============================================================
+
 def safe_document_ids(
     results: list[dict],
 ) -> list[str]:
     """
-    Convenience representation for console output.
+    Return unique document IDs while preserving
+    result order.
     """
 
-    ids = []
+    document_ids: list[str] = []
 
     for result in results:
-        document_id = result.get(
-            "document_id"
+        document_id = (
+            result.get(
+                "document_id"
+            )
         )
 
         if (
-            document_id
-            and document_id not in ids
+            isinstance(
+                document_id,
+                str,
+            )
+            and document_id
+            and document_id
+            not in document_ids
         ):
-            ids.append(
+            document_ids.append(
                 document_id
             )
 
-    return ids
+    return document_ids
 
 
-def run_benchmark() -> dict:
+def print_method_results(
+    label: str,
+    results: list[dict],
+) -> None:
     """
-    Execute the controlled Week 18 retrieval experiment.
+    Print readable retrieval output.
+    """
+
+    print(
+        f"  {label:<9}",
+        safe_document_ids(
+            results
+        ),
+    )
+
+
+def print_summary_metric(
+    label: str,
+    value,
+) -> None:
+    """
+    Print benchmark metric consistently.
+    """
+
+    print(
+        f"  {label}: {value}"
+    )
+
+
+# ============================================================
+# MAIN BENCHMARK
+# ============================================================
+
+def run_benchmark(
+) -> dict:
+    """
+    Execute the Week 18 retrieval experiment.
+
+    Methods compared:
+
+    1. Semantic retrieval
+    2. BM25 keyword retrieval
+    3. Original hybrid retrieval
+       Semantic + BM25 -> RRF -> existing reranker
+    4. RRF-only hybrid retrieval
+       Semantic + BM25 -> RRF -> final selection
+
+    The fourth method tests the hypothesis that the existing
+    post-fusion reranker may be undoing useful BM25/RRF signals.
     """
 
     print()
+
     print(
         "WEEK 18 RETRIEVAL BENCHMARK"
     )
+
     print(
-        "=" * 50
+        "=" * 60
     )
 
-    cases = load_evaluation_cases()
+    # --------------------------------------------------------
+    # LOAD EVALUATION CASES
+    # --------------------------------------------------------
+
+    cases = (
+        load_evaluation_cases()
+    )
 
     print(
         f"Evaluation cases: {len(cases)}"
     )
 
-    chunks = build_benchmark_corpus()
+    # --------------------------------------------------------
+    # BUILD CORPUS
+    # --------------------------------------------------------
+
+    chunks = (
+        build_benchmark_corpus()
+    )
 
     print(
         f"Total chunks: {len(chunks)}"
     )
 
+    # --------------------------------------------------------
+    # LOAD EMBEDDING MODEL
+    # --------------------------------------------------------
+
     print()
+
     print(
         "Loading embedding model..."
     )
 
-    model = load_embedding_model()
+    model = (
+        load_embedding_model()
+    )
 
     model_identifier = (
         get_model_identifier(
@@ -430,71 +666,120 @@ def run_benchmark() -> dict:
     )
 
     print(
-        f"Embedding model: {model_identifier}"
+        "Embedding model: "
+        f"{model_identifier}"
     )
 
+    # --------------------------------------------------------
+    # EMBED CORPUS
+    # --------------------------------------------------------
+
     print()
+
     print(
         "Embedding corpus..."
     )
 
-    embedded_chunks = embed_chunks(
-        chunks=chunks,
-        model=model,
-        model_name=model_identifier,
+    embedded_chunks = (
+        embed_chunks(
+            chunks=chunks,
+            model=model,
+            model_name=(
+                model_identifier
+            ),
+        )
     )
 
     print(
-        f"Embedded chunks: {len(embedded_chunks)}"
+        "Embedded chunks: "
+        f"{len(embedded_chunks)}"
     )
 
-    case_results = []
+    # --------------------------------------------------------
+    # RUN EVERY EVALUATION CASE
+    # --------------------------------------------------------
 
     print()
+
     print(
-        "Running benchmark..."
+        "Running retrieval benchmark..."
     )
+
     print()
+
+    case_results: list[dict] = []
 
     for case in cases:
-        query_id = case[
-            "query_id"
-        ]
+        query_id = (
+            case.get(
+                "query_id"
+            )
+        )
 
-        question = case[
-            "question"
-        ]
+        question = (
+            case.get(
+                "question"
+            )
+        )
+
+        if not isinstance(
+            question,
+            str,
+        ) or not question.strip():
+            raise ValueError(
+                f"{query_id} has an invalid question."
+            )
 
         print(
             f"{query_id}: {question}"
         )
 
+        # ====================================================
+        # METHOD 1 — SEMANTIC
+        # ====================================================
+
         semantic_results = (
             semantic_search(
                 query=question,
-                embedded_chunks=embedded_chunks,
+                embedded_chunks=(
+                    embedded_chunks
+                ),
                 model=model,
                 embedding_model=(
                     model_identifier
                 ),
-                candidate_k=SEMANTIC_K,
-                final_k=FINAL_K,
+                candidate_k=(
+                    SEMANTIC_K
+                ),
+                final_k=(
+                    FINAL_K
+                ),
                 min_similarity=(
                     SEMANTIC_MIN_SIMILARITY
                 ),
             )
         )
 
+        # ====================================================
+        # METHOD 2 — BM25
+        # ====================================================
+
         keyword_results = (
             keyword_search(
                 query=question,
                 chunks=chunks,
-                top_k=FINAL_K,
+                top_k=(
+                    FINAL_K
+                ),
                 min_score=(
                     KEYWORD_MIN_SCORE
                 ),
             )
         )
+
+        # ====================================================
+        # METHOD 3 — ORIGINAL HYBRID
+        # ====================================================
 
         hybrid_results = (
             hybrid_search(
@@ -507,9 +792,15 @@ def run_benchmark() -> dict:
                 embedding_model=(
                     model_identifier
                 ),
-                semantic_k=SEMANTIC_K,
-                keyword_k=KEYWORD_K,
-                final_k=FINAL_K,
+                semantic_k=(
+                    SEMANTIC_K
+                ),
+                keyword_k=(
+                    KEYWORD_K
+                ),
+                final_k=(
+                    FINAL_K
+                ),
                 semantic_min_similarity=(
                     SEMANTIC_MIN_SIMILARITY
                 ),
@@ -521,6 +812,46 @@ def run_benchmark() -> dict:
                 ),
             )
         )
+
+        # ====================================================
+        # METHOD 4 — RRF-ONLY HYBRID
+        # ====================================================
+
+        rrf_only_results = (
+            hybrid_search_rrf_only(
+                query=question,
+                chunks=chunks,
+                embedded_chunks=(
+                    embedded_chunks
+                ),
+                model=model,
+                embedding_model=(
+                    model_identifier
+                ),
+                semantic_k=(
+                    SEMANTIC_K
+                ),
+                keyword_k=(
+                    KEYWORD_K
+                ),
+                final_k=(
+                    FINAL_K
+                ),
+                semantic_min_similarity=(
+                    SEMANTIC_MIN_SIMILARITY
+                ),
+                keyword_min_score=(
+                    KEYWORD_MIN_SCORE
+                ),
+                min_rrf_score=(
+                    MIN_RRF_SCORE
+                ),
+            )
+        )
+
+        # ====================================================
+        # EVALUATE ORIGINAL THREE METHODS
+        # ====================================================
 
         comparison = (
             compare_methods_for_case(
@@ -534,9 +865,37 @@ def run_benchmark() -> dict:
                 hybrid_results=(
                     hybrid_results
                 ),
-                top_k=FINAL_K,
+                top_k=(
+                    FINAL_K
+                ),
             )
         )
+
+        # ====================================================
+        # EVALUATE RRF-ONLY METHOD
+        # ====================================================
+
+        rrf_only_evaluation = (
+            evaluate_retrieval_results(
+                case=case,
+                results=(
+                    rrf_only_results
+                ),
+                top_k=(
+                    FINAL_K
+                ),
+            )
+        )
+
+        comparison[
+            "rrf_only"
+        ] = (
+            rrf_only_evaluation
+        )
+
+        # ====================================================
+        # PRESERVE RAW RETRIEVAL OUTPUT
+        # ====================================================
 
         comparison[
             "raw_results"
@@ -550,69 +909,108 @@ def run_benchmark() -> dict:
             "hybrid": (
                 hybrid_results
             ),
+            "rrf_only": (
+                rrf_only_results
+            ),
         }
 
         case_results.append(
             comparison
         )
 
-        print(
-            "  Semantic:",
-            safe_document_ids(
-                semantic_results
-            ),
+        # ====================================================
+        # PRINT CASE RESULTS
+        # ====================================================
+
+        print_method_results(
+            "Semantic:",
+            semantic_results,
         )
 
-        print(
-            "  BM25:    ",
-            safe_document_ids(
-                keyword_results
-            ),
+        print_method_results(
+            "BM25:",
+            keyword_results,
         )
 
-        print(
-            "  Hybrid:  ",
-            safe_document_ids(
-                hybrid_results
-            ),
+        print_method_results(
+            "Hybrid:",
+            hybrid_results,
+        )
+
+        print_method_results(
+            "RRF-only:",
+            rrf_only_results,
         )
 
         print()
 
-    summary = summarise_benchmark(
-        case_results
+    # --------------------------------------------------------
+    # ORIGINAL THREE-METHOD SUMMARY
+    # --------------------------------------------------------
+
+    summary = (
+        summarise_benchmark(
+            case_results
+        )
+    )
+
+    # --------------------------------------------------------
+    # ADD RRF-ONLY SUMMARY
+    # --------------------------------------------------------
+
+    summary[
+        "rrf_only"
+    ] = (
+        summarise_method(
+            case_results,
+            "rrf_only",
+        )
+    )
+
+    # --------------------------------------------------------
+    # EXPERIMENT METADATA
+    # --------------------------------------------------------
+
+    raw_files = (
+        get_raw_corpus_files()
     )
 
     output = {
         "experiment": (
             "week18_retrieval_benchmark"
         ),
-        "evaluation_case_count": len(
-            cases
+        "experiment_description": (
+            "Semantic vs BM25 vs original hybrid "
+            "vs RRF-only hybrid retrieval"
         ),
-        "corpus_file_count": len(
-            [
-                path
-                for path
-                in RAW_DATA_DIR.iterdir()
-                if path.suffix.lower()
-                in {".pdf", ".txt"}
-            ]
+        "evaluation_case_count": (
+            len(cases)
         ),
-        "chunk_count": len(
-            chunks
+        "corpus_file_count": (
+            len(raw_files)
+        ),
+        "chunk_count": (
+            len(chunks)
         ),
         "embedding_model": (
             model_identifier
         ),
         "configuration": {
-            "target_chars": TARGET_CHARS,
+            "target_chars": (
+                TARGET_CHARS
+            ),
             "overlap_chars": (
                 OVERLAP_CHARS
             ),
-            "semantic_k": SEMANTIC_K,
-            "keyword_k": KEYWORD_K,
-            "final_k": FINAL_K,
+            "semantic_k": (
+                SEMANTIC_K
+            ),
+            "keyword_k": (
+                KEYWORD_K
+            ),
+            "final_k": (
+                FINAL_K
+            ),
             "semantic_min_similarity": (
                 SEMANTIC_MIN_SIMILARITY
             ),
@@ -622,12 +1020,19 @@ def run_benchmark() -> dict:
             "min_rrf_score": (
                 MIN_RRF_SCORE
             ),
+            "rrf_only_experiment": True,
         },
-        "summary": summary,
+        "summary": (
+            summary
+        ),
         "case_results": (
             case_results
         ),
     }
+
+    # --------------------------------------------------------
+    # SAVE JSON OUTPUT
+    # --------------------------------------------------------
 
     OUTPUT_FILE.parent.mkdir(
         parents=True,
@@ -645,8 +1050,12 @@ def run_benchmark() -> dict:
             ensure_ascii=False,
         )
 
+    # --------------------------------------------------------
+    # PRINT FINAL BENCHMARK SUMMARY
+    # --------------------------------------------------------
+
     print(
-        "=" * 50
+        "=" * 60
     )
 
     print(
@@ -654,62 +1063,82 @@ def run_benchmark() -> dict:
     )
 
     print(
-        "=" * 50
+        "=" * 60
     )
 
     for method_name in (
         "semantic",
         "keyword",
         "hybrid",
+        "rrf_only",
     ):
-        metrics = summary[
-            method_name
-        ]
-
-        print()
-        print(
-            method_name.upper()
+        metrics = (
+            summary[
+                method_name
+            ]
         )
 
+        print()
+
         print(
-            "  Top-1:",
+            method_name
+            .replace(
+                "_",
+                " ",
+            )
+            .upper()
+        )
+
+        print_summary_metric(
+            "Top-1",
             metrics[
                 "top1_success_rate"
             ],
         )
 
-        print(
-            "  Top-k:",
+        print_summary_metric(
+            "Top-k",
             metrics[
                 "topk_success_rate"
             ],
         )
 
-        print(
-            "  Abstention:",
+        print_summary_metric(
+            "Abstention",
             metrics[
                 "abstention_success_rate"
             ],
         )
 
-        print(
-            "  Active-only:",
+        print_summary_metric(
+            "Active-only",
             metrics[
                 "active_only_rate"
             ],
         )
 
     print()
+
     print(
-        f"Saved benchmark to:"
+        "Benchmark saved to:"
     )
 
     print(
         OUTPUT_FILE
     )
 
+    print()
+
+    print(
+        "Experiment complete."
+    )
+
     return output
 
+
+# ============================================================
+# COMMAND-LINE ENTRY POINT
+# ============================================================
 
 if __name__ == "__main__":
     run_benchmark()
