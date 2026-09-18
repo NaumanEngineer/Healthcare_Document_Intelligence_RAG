@@ -1,0 +1,10 @@
+{
+  "experiment": "week18_retrieval_benchmark",
+  "cases": 14,
+  "methods": {
+    "semantic": {},
+    "keyword": {},
+    "hybrid": {}
+  },
+  "case_results": []
+}
