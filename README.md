@@ -139,3 +139,88 @@ The evaluation framework is implemented.
 Performance metrics should only be reported from executed benchmark runs.
 
 Placeholder or illustrative figures are not presented as measured project results.
+
+
+## Week 18 — Governed Retrieval & Human Review
+
+Week 18 upgraded the project from a retrieval prototype into a more controlled operational evidence assistant.
+
+### What was added
+
+- Semantic retrieval benchmark
+- BM25 keyword retrieval
+- Hybrid retrieval
+- RRF-only comparison
+- Active-only lifecycle enforcement
+- Deterministic query-scope gate
+- Abstention controls
+- Human-review routing
+- Confidence and score-gap rules
+- Structured audit records
+
+### Benchmark results
+
+| Method | Top-1 | Top-k | Abstention | Active-only |
+|---|---:|---:|---:|---:|
+| Semantic | 70% | 90% | 100% | 100% |
+| BM25 | 20% | 40% | 100% | 100% |
+| Hybrid | 70% | 90% | 100% | 100% |
+| RRF-only | 40% | 50% | 100% | 100% |
+
+A key finding was that more complex retrieval did not automatically improve performance. Semantic retrieval remained the strongest baseline, while the existing reranking stage added value over RRF-only fusion.
+
+### Safety finding
+
+Initially, unsupported questions could still retrieve semantically related operational documents.
+
+Examples included:
+
+- medication prescribing;
+- antibiotic dosing;
+- current external leadership questions.
+
+A deterministic scope gate improved abstention success from:
+
+`0% → 100%`
+
+without reducing semantic retrieval performance.
+
+### Human-review outcomes
+
+The system now routes queries to:
+
+- `AUTO_ANSWER`
+- `REVIEW_REQUIRED`
+- `ABSTAIN`
+
+Across the 14-case benchmark:
+
+| Outcome | Cases |
+|---|---:|
+| AUTO_ANSWER | 3 |
+| REVIEW_REQUIRED | 8 |
+| ABSTAIN | 3 |
+
+The design deliberately prioritises traceability and human accountability over unsupported automation.
+
+### Current governed flow
+
+```text
+Question
+↓
+Scope Gate
+↓
+Retrieval
+↓
+Lifecycle Filtering
+↓
+Reranking
+↓
+Evidence Assessment
+↓
+AUTO_ANSWER / REVIEW_REQUIRED / ABSTAIN
+↓
+Grounded Answer or Human Review
+↓
+Audit Record
+```
