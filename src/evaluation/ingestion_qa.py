@@ -3,6 +3,14 @@ def classify_ingestion_quality(report: dict) -> str:
     Classify overall ingestion quality using simple prototype rules.
     """
 
+    counts = [report.get(key) for key in
+              ("pages_processed", "successful_pages", "empty_pages")]
+    if any(type(count) is not int or count < 0 for count in counts):
+        raise ValueError("QA counts must be non-negative integers.")
+    total, successful, empty = counts
+    if successful + empty != total:
+        raise ValueError("Every processed page must have a recognized status.")
+
     if report["pages_processed"] == 0:
         return "failed"
 
@@ -19,6 +27,9 @@ def build_ingestion_report(records: list[dict]) -> dict:
     """
     Build simple QA metrics for an ingestion run.
     """
+
+    for index, record in enumerate(records):
+        _validate_page_record(record, index)
 
     total_pages = len(records)
 
@@ -59,42 +70,96 @@ def build_ingestion_report(records: list[dict]) -> dict:
     return report
 
 
-def test_ingestion_quality_passed():
-    report = {
-        "pages_processed": 5,
-        "successful_pages": 5,
-        "empty_pages": 0,
-    }
+def _validate_page_record(
+    record: dict,
+    index: int,
+) -> None:
+    """
+    Reject malformed evidence before it can contribute
+    to a passed ingestion report.
 
-    from src.evaluation.ingestion_qa import classify_ingestion_quality
+    Supports both:
+    - page
+    - page_number
 
-    assert classify_ingestion_quality(report) == "passed"
+    page is the canonical current field.
+    page_number is accepted for backward compatibility.
+    """
 
+    if not isinstance(record, dict):
+        raise ValueError(
+            f"Record {index} must be a dictionary."
+        )
 
-def test_ingestion_quality_review():
-    report = {
-        "pages_processed": 5,
-        "successful_pages": 4,
-        "empty_pages": 1,
-    }
+    for field in (
+        "document_id",
+        "source_file",
+    ):
+        value = record.get(
+            field
+        )
 
-    from src.evaluation.ingestion_qa import classify_ingestion_quality
+        if (
+            not isinstance(value, str)
+            or not value.strip()
+        ):
+            raise ValueError(
+                f"Record {index} requires a non-empty {field}."
+            )
 
-    assert classify_ingestion_quality(report) == "review"
+    page = record.get(
+        "page"
+    )
 
+    if page is None:
+        page = record.get(
+            "page_number"
+        )
 
+    if (
+        type(page) is not int
+        or page < 1
+    ):
+        raise ValueError(
+            f"Record {index} requires a one-based page number."
+        )
 
-def test_ingestion_quality_failed():
-    report = {
-        "pages_processed": 2,
-        "successful_pages": 0,
-        "empty_pages": 2,
-    }
+    extraction_status = record.get(
+        "extraction_status"
+    )
 
-    from src.evaluation.ingestion_qa import classify_ingestion_quality
+    if extraction_status not in {
+        "success",
+        "empty_page",
+    }:
+        raise ValueError(
+            f"Record {index} has an invalid extraction_status."
+        )
 
-    assert classify_ingestion_quality(report) == "failed"
+    text = record.get(
+        "text"
+    )
 
+    if not isinstance(
+        text,
+        str,
+    ):
+        raise ValueError(
+            f"Record {index} text must be a string."
+        )
 
-pytest -q
+    if (
+        extraction_status == "success"
+        and not text.strip()
+    ):
+        raise ValueError(
+            f"Record {index} marked success but has empty text."
+        )
 
+    if (
+        extraction_status == "empty_page"
+        and text.strip()
+    ):
+        raise ValueError(
+            f"Record {index} marked empty_page but contains text."
+        )

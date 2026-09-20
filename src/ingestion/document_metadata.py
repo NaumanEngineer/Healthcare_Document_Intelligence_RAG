@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from pathlib import PureWindowsPath
+from uuid import uuid4
 
 
 VALID_DOCUMENT_STATUSES = {
@@ -28,6 +30,45 @@ class DocumentMetadata:
     version: str
     effective_date: str
     status: str
+    source_file: str | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.status, str) or self.status not in VALID_DOCUMENT_STATUSES:
+            raise ValueError(f"Unsupported document status: {self.status!r}")
+        if self.source_file is None:
+            if not isinstance(self.source_location, str) or not self.source_location.strip():
+                raise ValueError("source_location must be a non-empty string")
+            object.__setattr__(self, "source_file", PureWindowsPath(self.source_location).name)
+        if not isinstance(self.source_file, str) or not self.source_file.strip():
+            raise ValueError("source_file must be a non-empty string")
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+def create_ingestion_batch_id() -> str:
+    """Create one traceable identifier for an ingestion run."""
+    return str(uuid4())
+
+
+def is_active_document(metadata: DocumentMetadata) -> bool:
+    """Compatibility helper for callers holding a metadata record."""
+    return metadata.status == "Active"
+
+
+def enrich_page_record(page_record: dict, metadata: DocumentMetadata) -> dict:
+    """Attach canonical metadata without changing or overwriting provenance."""
+    validate_document_metadata(metadata)
+    if not isinstance(page_record, dict):
+        raise TypeError("page_record must be a dictionary")
+    for field in ("document_id", "source_file"):
+        if page_record.get(field) != getattr(metadata, field):
+            raise ValueError(f"Page {field} does not match document metadata")
+    fields = metadata.to_dict()
+    for field, value in fields.items():
+        if field in page_record and page_record[field] != value:
+            raise ValueError(f"Page {field} conflicts with document metadata")
+    return {**fields, **page_record}
 
 
 def validate_document_status(
@@ -35,6 +76,13 @@ def validate_document_status(
 ) -> None:
     """
     Validate a document lifecycle status.
+
+    Supported lifecycle states:
+
+    - Active
+    - Superseded
+    - Draft
+    - Archived
     """
 
     if not isinstance(status, str):
@@ -58,10 +106,13 @@ def validate_document_id(
     document_id: str,
 ) -> None:
     """
-    Validate the document identifier.
+    Validate the basic document identifier.
     """
 
-    if not isinstance(document_id, str):
+    if not isinstance(
+        document_id,
+        str,
+    ):
         raise TypeError(
             "document_id must be a string"
         )
@@ -93,13 +144,17 @@ def validate_document_metadata(
         "document_type": metadata.document_type,
         "source_type": metadata.source_type,
         "source_location": metadata.source_location,
+        "source_file": metadata.source_file,
         "version": metadata.version,
         "effective_date": metadata.effective_date,
         "status": metadata.status,
     }
 
     for field_name, value in required_fields.items():
-        if not isinstance(value, str):
+        if not isinstance(
+            value,
+            str,
+        ):
             raise TypeError(
                 f"{field_name} must be a string"
             )
@@ -119,15 +174,35 @@ def validate_document_metadata(
 
 
 def build_document_register(
+    documents: list[DocumentMetadata] | None = None,
 ) -> dict[str, DocumentMetadata]:
     """
     Build the canonical synthetic document register.
+
+    The register deliberately contains lifecycle metadata so
+    retrieval can distinguish approved Active documents from
+    Draft, Superseded and Archived material.
     """
 
+    if documents is not None:
+        register = {}
+        for metadata in documents:
+            validate_document_metadata(metadata)
+            if metadata.document_id in register:
+                raise ValueError(f"Duplicate document_id: {metadata.document_id}")
+            register[metadata.document_id] = metadata
+        return register
+
     return {
+        # -----------------------------------------------------
+        # WEEK 17 CORE CORPUS
+        # -----------------------------------------------------
+
         "DOC-001": DocumentMetadata(
             document_id="DOC-001",
-            title="Operational Escalation Policy",
+            title=(
+                "Operational Escalation Policy"
+            ),
             document_type="Policy",
             source_type="Synthetic",
             source_location=(
@@ -155,7 +230,9 @@ def build_document_register(
 
         "DOC-003": DocumentMetadata(
             document_id="DOC-003",
-            title="Workforce Escalation Procedure",
+            title=(
+                "Workforce Escalation Procedure"
+            ),
             document_type="Procedure",
             source_type="Synthetic",
             source_location=(
@@ -169,7 +246,9 @@ def build_document_register(
 
         "DOC-004": DocumentMetadata(
             document_id="DOC-004",
-            title="Bed Capacity Management Procedure",
+            title=(
+                "Bed Capacity Management Procedure"
+            ),
             document_type="Procedure",
             source_type="Synthetic",
             source_location=(
@@ -183,7 +262,9 @@ def build_document_register(
 
         "DOC-005": DocumentMetadata(
             document_id="DOC-005",
-            title="Business Continuity Procedure",
+            title=(
+                "Business Continuity Procedure"
+            ),
             document_type="Procedure",
             source_type="Synthetic",
             source_location=(
@@ -197,7 +278,9 @@ def build_document_register(
 
         "DOC-006": DocumentMetadata(
             document_id="DOC-006",
-            title="Operational Governance Standard",
+            title=(
+                "Operational Governance Standard"
+            ),
             document_type="Governance Standard",
             source_type="Synthetic",
             source_location=(
@@ -209,14 +292,21 @@ def build_document_register(
             status="Active",
         ),
 
+        # -----------------------------------------------------
+        # WEEK 18 RETRIEVAL-STRESS CORPUS
+        # -----------------------------------------------------
+
         "DOC-007": DocumentMetadata(
             document_id="DOC-007",
-            title="Emergency Department Escalation Procedure",
+            title=(
+                "Emergency Department Escalation Procedure"
+            ),
             document_type="Procedure",
             source_type="Synthetic",
             source_location=(
                 "data/raw/"
-                "DOC-007_emergency_department_escalation_procedure.pdf"
+                "DOC-007_emergency_department_"
+                "escalation_procedure.pdf"
             ),
             version="1.0",
             effective_date="2026-01-01",
@@ -225,12 +315,15 @@ def build_document_register(
 
         "DOC-008": DocumentMetadata(
             document_id="DOC-008",
-            title="Ambulance Handover Escalation Guidance",
+            title=(
+                "Ambulance Handover Escalation Guidance"
+            ),
             document_type="Operational Guidance",
             source_type="Synthetic",
             source_location=(
                 "data/raw/"
-                "DOC-008_ambulance_handover_escalation_guidance.pdf"
+                "DOC-008_ambulance_handover_"
+                "escalation_guidance.pdf"
             ),
             version="1.0",
             effective_date="2026-01-01",
@@ -239,7 +332,9 @@ def build_document_register(
 
         "DOC-009": DocumentMetadata(
             document_id="DOC-009",
-            title="Severe Weather Operational Plan",
+            title=(
+                "Severe Weather Operational Plan"
+            ),
             document_type="Operational Plan",
             source_type="Synthetic",
             source_location=(
@@ -253,12 +348,15 @@ def build_document_register(
 
         "DOC-010": DocumentMetadata(
             document_id="DOC-010",
-            title="Infection Surge Operational Response Plan",
+            title=(
+                "Infection Surge Operational Response Plan"
+            ),
             document_type="Operational Plan",
             source_type="Synthetic",
             source_location=(
                 "data/raw/"
-                "DOC-010_infection_surge_operational_response_plan.pdf"
+                "DOC-010_infection_surge_operational_"
+                "response_plan.pdf"
             ),
             version="1.0",
             effective_date="2026-01-01",
@@ -267,12 +365,15 @@ def build_document_register(
 
         "DOC-011": DocumentMetadata(
             document_id="DOC-011",
-            title="Critical Staffing Contingency Procedure",
+            title=(
+                "Critical Staffing Contingency Procedure"
+            ),
             document_type="Procedure",
             source_type="Synthetic",
             source_location=(
                 "data/raw/"
-                "DOC-011_critical_staffing_contingency_procedure.pdf"
+                "DOC-011_critical_staffing_"
+                "contingency_procedure.pdf"
             ),
             version="1.0",
             effective_date="2026-01-01",
@@ -281,7 +382,9 @@ def build_document_register(
 
         "DOC-012": DocumentMetadata(
             document_id="DOC-012",
-            title="Site Flow Coordination Procedure",
+            title=(
+                "Site Flow Coordination Procedure"
+            ),
             document_type="Procedure",
             source_type="Synthetic",
             source_location=(
@@ -295,12 +398,15 @@ def build_document_register(
 
         "DOC-013": DocumentMetadata(
             document_id="DOC-013",
-            title="Operational Pressure Coordination Guidance",
+            title=(
+                "Operational Pressure Coordination Guidance"
+            ),
             document_type="Operational Guidance",
             source_type="Synthetic",
             source_location=(
                 "data/raw/"
-                "DOC-013_operational_pressure_coordination_guidance.txt"
+                "DOC-013_operational_pressure_"
+                "coordination_guidance.txt"
             ),
             version="1.0",
             effective_date="2026-01-01",
@@ -309,12 +415,15 @@ def build_document_register(
 
         "DOC-014": DocumentMetadata(
             document_id="DOC-014",
-            title="Draft Emergency Pressure Framework",
+            title=(
+                "Draft Emergency Pressure Framework"
+            ),
             document_type="Draft Framework",
             source_type="Synthetic",
             source_location=(
                 "data/raw/"
-                "DOC-014_draft_emergency_pressure_framework.txt"
+                "DOC-014_draft_emergency_"
+                "pressure_framework.txt"
             ),
             version="0.1",
             effective_date="2026-06-01",
@@ -357,49 +466,6 @@ def get_document_metadata(
     )
 
     return metadata
-
-
-def enrich_page_record(
-    page_record: dict,
-    metadata: DocumentMetadata,
-) -> dict:
-    """
-    Add canonical document metadata to one extracted page record.
-
-    Existing page-level values are preserved unless they are
-    canonical document fields supplied by the register.
-    """
-
-    if not isinstance(
-        page_record,
-        dict,
-    ):
-        raise TypeError(
-            "page_record must be a dict"
-        )
-
-    validate_document_metadata(
-        metadata
-    )
-
-    enriched = dict(
-        page_record
-    )
-
-    enriched.update(
-        {
-            "document_id": metadata.document_id,
-            "title": metadata.title,
-            "document_type": metadata.document_type,
-            "source_type": metadata.source_type,
-            "source_location": metadata.source_location,
-            "version": metadata.version,
-            "effective_date": metadata.effective_date,
-            "status": metadata.status,
-        }
-    )
-
-    return enriched
 
 
 def is_document_registered(
@@ -459,6 +525,9 @@ def is_document_retrieval_eligible(
 ) -> bool:
     """
     Normal retrieval permits Active documents only.
+
+    Draft, Superseded and Archived material remains available
+    for governance/audit testing but is not approved evidence.
     """
 
     metadata = get_document_metadata(
@@ -469,5 +538,3 @@ def is_document_retrieval_eligible(
         metadata.status
         == "Active"
     )
-
-  

@@ -1,0 +1,196 @@
+{
+  "experiment": "week18_human_review_decision_audit",
+  "retrieval_method": "hybrid",
+  "summary": {
+    "total_cases": 14,
+    "auto_answer": 3,
+    "review_required": 8,
+    "abstain": 3
+  },
+  "cases": [
+    {
+      "query_id": "Q001",
+      "question": "What should operational leadership do during escalation?",
+      "scope": "IN_SCOPE",
+      "decision": "REVIEW_REQUIRED",
+      "reason": "Evidence is relevant but does not meet the configured confidence and separation requirements for automatic answering.",
+      "requires_human_review": true,
+      "may_generate_answer": false,
+      "document_ids": [
+        "DOC-007",
+        "DOC-001",
+        "DOC-003"
+      ]
+    },
+    {
+      "query_id": "Q002",
+      "question": "What actions should be considered when workforce pressure becomes severe?",
+      "scope": "IN_SCOPE",
+      "decision": "REVIEW_REQUIRED",
+      "reason": "Evidence is relevant but does not meet the configured confidence and separation requirements for automatic answering.",
+      "requires_human_review": true,
+      "may_generate_answer": false,
+      "document_ids": [
+        "DOC-003",
+        "DOC-011",
+        "DOC-001"
+      ]
+    },
+    {
+      "query_id": "Q003",
+      "question": "Which guidance covers escalation when bed capacity is under pressure?",
+      "scope": "IN_SCOPE",
+      "decision": "AUTO_ANSWER",
+      "reason": "Question is in scope and the top Active evidence meets the configured confidence and score-gap requirements.",
+      "requires_human_review": false,
+      "may_generate_answer": true,
+      "document_ids": [
+        "DOC-004",
+        "DOC-001",
+        "DOC-007"
+      ]
+    },
+    {
+      "query_id": "Q004",
+      "question": "What responsibilities belong to operational leadership during a period of pressure?",
+      "scope": "IN_SCOPE",
+      "decision": "REVIEW_REQUIRED",
+      "reason": "Evidence is relevant but does not meet the configured confidence and separation requirements for automatic answering.",
+      "requires_human_review": true,
+      "may_generate_answer": false,
+      "document_ids": [
+        "DOC-013",
+        "DOC-001",
+        "DOC-009"
+      ]
+    },
+    {
+      "query_id": "Q005",
+      "question": "What guidance should be followed if normal operational services are disrupted?",
+      "scope": "IN_SCOPE",
+      "decision": "AUTO_ANSWER",
+      "reason": "Question is in scope and the top Active evidence meets the configured confidence and score-gap requirements.",
+      "requires_human_review": false,
+      "may_generate_answer": true,
+      "document_ids": [
+        "DOC-005",
+        "DOC-001",
+        "DOC-009"
+      ]
+    },
+    {
+      "query_id": "Q006",
+      "question": "What operational guidance applies during severe winter pressure?",
+      "scope": "IN_SCOPE",
+      "decision": "AUTO_ANSWER",
+      "reason": "Question is in scope and the top Active evidence meets the configured confidence and score-gap requirements.",
+      "requires_human_review": false,
+      "may_generate_answer": true,
+      "document_ids": [
+        "DOC-002",
+        "DOC-013",
+        "DOC-009"
+      ]
+    },
+    {
+      "query_id": "Q007",
+      "question": "What medication should be prescribed during operational escalation?",
+      "scope": "OUT_OF_SCOPE",
+      "decision": "ABSTAIN",
+      "reason": "Question is outside the approved operational-policy scope.",
+      "requires_human_review": false,
+      "may_generate_answer": false,
+      "document_ids": []
+    },
+    {
+      "query_id": "Q008",
+      "question": "What antibiotic dose should be used for a patient with sepsis?",
+      "scope": "OUT_OF_SCOPE",
+      "decision": "ABSTAIN",
+      "reason": "Question is outside the approved operational-policy scope.",
+      "requires_human_review": false,
+      "may_generate_answer": false,
+      "document_ids": []
+    },
+    {
+      "query_id": "Q009",
+      "question": "What is the current escalation process?",
+      "scope": "IN_SCOPE",
+      "decision": "REVIEW_REQUIRED",
+      "reason": "Evidence is relevant but does not meet the configured confidence and separation requirements for automatic answering.",
+      "requires_human_review": true,
+      "may_generate_answer": false,
+      "document_ids": [
+        "DOC-007",
+        "DOC-003",
+        "DOC-001"
+      ]
+    },
+    {
+      "query_id": "Q010",
+      "question": "Summarise the operational escalation guidance.",
+      "scope": "IN_SCOPE",
+      "decision": "REVIEW_REQUIRED",
+      "reason": "Evidence is relevant but does not meet the configured confidence and separation requirements for automatic answering.",
+      "requires_human_review": true,
+      "may_generate_answer": false,
+      "document_ids": [
+        "DOC-001",
+        "DOC-007",
+        "DOC-003"
+      ]
+    },
+    {
+      "query_id": "Q011",
+      "question": "How should workforce and bed capacity pressures be considered together during operational escalation?",
+      "scope": "IN_SCOPE",
+      "decision": "REVIEW_REQUIRED",
+      "reason": "Question requires cross-document or multi-domain reasoning.",
+      "requires_human_review": true,
+      "may_generate_answer": false,
+      "document_ids": [
+        "DOC-004",
+        "DOC-001",
+        "DOC-003"
+      ]
+    },
+    {
+      "query_id": "Q012",
+      "question": "Who is the current Chief Executive of NHS England?",
+      "scope": "OUT_OF_SCOPE",
+      "decision": "ABSTAIN",
+      "reason": "Question is outside the approved operational-policy scope.",
+      "requires_human_review": false,
+      "may_generate_answer": false,
+      "document_ids": []
+    },
+    {
+      "query_id": "Q013",
+      "question": "What should operational leadership do during operational escalation?",
+      "scope": "IN_SCOPE",
+      "decision": "REVIEW_REQUIRED",
+      "reason": "Evidence is relevant but does not meet the configured confidence and separation requirements for automatic answering.",
+      "requires_human_review": true,
+      "may_generate_answer": false,
+      "document_ids": [
+        "DOC-001",
+        "DOC-007",
+        "DOC-009"
+      ]
+    },
+    {
+      "query_id": "Q014",
+      "question": "What framework should be used for emergency operational pressure?",
+      "scope": "IN_SCOPE",
+      "decision": "REVIEW_REQUIRED",
+      "reason": "Evidence is relevant but does not meet the configured confidence and separation requirements for automatic answering.",
+      "requires_human_review": true,
+      "may_generate_answer": false,
+      "document_ids": [
+        "DOC-013",
+        "DOC-001",
+        "DOC-007"
+      ]
+    }
+  ]
+}
