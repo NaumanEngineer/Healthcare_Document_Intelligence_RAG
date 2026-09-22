@@ -35,6 +35,9 @@ from src.retrieval.hybrid_search_rrf_only import (
     hybrid_search_rrf_only,
 )
 
+from src.retrieval.query_scope import assess_query_scope
+from src.retrieval.evidence_sufficiency import assess_evidence_sufficiency
+
 from src.evaluation.retrieval_benchmark import (
     compare_methods_for_case,
     evaluate_retrieval_results,
@@ -730,124 +733,162 @@ def run_benchmark(
                 f"{query_id} has an invalid question."
             )
 
+        scope_assessment = assess_query_scope(question)
+
         print(
             f"{query_id}: {question}"
         )
 
-        # ====================================================
-        # METHOD 1 — SEMANTIC
-        # ====================================================
+        if scope_assessment["allowed"] is False:
+            semantic_results = []
+            keyword_results = []
+            hybrid_results = []
+            rrf_only_results = []
+            print("Scope: OUT_OF_SCOPE -> ABSTAIN")
+        else:
+            # ====================================================
+            # METHOD 1 — SEMANTIC
+            # ====================================================
 
-        semantic_results = (
-            semantic_search(
-                query=question,
-                embedded_chunks=(
-                    embedded_chunks
-                ),
-                model=model,
-                embedding_model=(
-                    model_identifier
-                ),
-                candidate_k=(
-                    SEMANTIC_K
-                ),
-                final_k=(
-                    FINAL_K
-                ),
-                min_similarity=(
-                    SEMANTIC_MIN_SIMILARITY
-                ),
+            semantic_results = (
+                semantic_search(
+                    query=question,
+                    embedded_chunks=(
+                        embedded_chunks
+                    ),
+                    model=model,
+                    embedding_model=(
+                        model_identifier
+                    ),
+                    candidate_k=(
+                        SEMANTIC_K
+                    ),
+                    final_k=(
+                        FINAL_K
+                    ),
+                    min_similarity=(
+                        SEMANTIC_MIN_SIMILARITY
+                    ),
+                )
             )
-        )
 
-        # ====================================================
-        # METHOD 2 — BM25
-        # ====================================================
+            # ====================================================
+            # METHOD 2 — BM25
+            # ====================================================
 
-        keyword_results = (
-            keyword_search(
-                query=question,
-                chunks=chunks,
-                top_k=(
-                    FINAL_K
-                ),
-                min_score=(
-                    KEYWORD_MIN_SCORE
-                ),
+            keyword_results = (
+                keyword_search(
+                    query=question,
+                    chunks=chunks,
+                    top_k=(
+                        FINAL_K
+                    ),
+                    min_score=(
+                        KEYWORD_MIN_SCORE
+                    ),
+                )
             )
-        )
 
-        # ====================================================
-        # METHOD 3 — ORIGINAL HYBRID
-        # ====================================================
+            # ====================================================
+            # METHOD 3 — ORIGINAL HYBRID
+            # ====================================================
 
-        hybrid_results = (
-            hybrid_search(
-                query=question,
-                chunks=chunks,
-                embedded_chunks=(
-                    embedded_chunks
-                ),
-                model=model,
-                embedding_model=(
-                    model_identifier
-                ),
-                semantic_k=(
-                    SEMANTIC_K
-                ),
-                keyword_k=(
-                    KEYWORD_K
-                ),
-                final_k=(
-                    FINAL_K
-                ),
-                semantic_min_similarity=(
-                    SEMANTIC_MIN_SIMILARITY
-                ),
-                keyword_min_score=(
-                    KEYWORD_MIN_SCORE
-                ),
-                min_rrf_score=(
-                    MIN_RRF_SCORE
-                ),
+            hybrid_results = (
+                hybrid_search(
+                    query=question,
+                    chunks=chunks,
+                    embedded_chunks=(
+                        embedded_chunks
+                    ),
+                    model=model,
+                    embedding_model=(
+                        model_identifier
+                    ),
+                    semantic_k=(
+                        SEMANTIC_K
+                    ),
+                    keyword_k=(
+                        KEYWORD_K
+                    ),
+                    final_k=(
+                        FINAL_K
+                    ),
+                    semantic_min_similarity=(
+                        SEMANTIC_MIN_SIMILARITY
+                    ),
+                    keyword_min_score=(
+                        KEYWORD_MIN_SCORE
+                    ),
+                    min_rrf_score=(
+                        MIN_RRF_SCORE
+                    ),
+                )
             )
-        )
 
-        # ====================================================
-        # METHOD 4 — RRF-ONLY HYBRID
-        # ====================================================
+            # ====================================================
+            # METHOD 4 — RRF-ONLY HYBRID
+            # ====================================================
 
-        rrf_only_results = (
-            hybrid_search_rrf_only(
-                query=question,
-                chunks=chunks,
-                embedded_chunks=(
-                    embedded_chunks
-                ),
-                model=model,
-                embedding_model=(
-                    model_identifier
-                ),
-                semantic_k=(
-                    SEMANTIC_K
-                ),
-                keyword_k=(
-                    KEYWORD_K
-                ),
-                final_k=(
-                    FINAL_K
-                ),
-                semantic_min_similarity=(
-                    SEMANTIC_MIN_SIMILARITY
-                ),
-                keyword_min_score=(
-                    KEYWORD_MIN_SCORE
-                ),
-                min_rrf_score=(
-                    MIN_RRF_SCORE
-                ),
+            rrf_only_results = (
+                hybrid_search_rrf_only(
+                    query=question,
+                    chunks=chunks,
+                    embedded_chunks=(
+                        embedded_chunks
+                    ),
+                    model=model,
+                    embedding_model=(
+                        model_identifier
+                    ),
+                    semantic_k=(
+                        SEMANTIC_K
+                    ),
+                    keyword_k=(
+                        KEYWORD_K
+                    ),
+                    final_k=(
+                        FINAL_K
+                    ),
+                    semantic_min_similarity=(
+                        SEMANTIC_MIN_SIMILARITY
+                    ),
+                    keyword_min_score=(
+                        KEYWORD_MIN_SCORE
+                    ),
+                    min_rrf_score=(
+                        MIN_RRF_SCORE
+                    ),
+                )
             )
-        )
+
+        # Preserve retrieval output before applying per-method evidence gates.
+        raw_results = {
+            "semantic": semantic_results,
+            "keyword": keyword_results,
+            "hybrid": hybrid_results,
+            "rrf_only": rrf_only_results,
+        }
+        scoring_results = raw_results.copy()
+        # None records that evidence assessment was skipped by the scope gate.
+        evidence_assessments = dict.fromkeys(raw_results)
+        if scope_assessment["allowed"]:
+            for method, results in raw_results.items():
+                assessment = assess_evidence_sufficiency(question, results)
+                evidence_assessments[method] = assessment
+                if assessment["decision"] == "INSUFFICIENT":
+                    scoring_results[method] = []
+                    label = {
+                        "semantic": "Semantic",
+                        "keyword": "BM25",
+                        "hybrid": "Hybrid",
+                        "rrf_only": "RRF-only",
+                    }[method]
+                    print(f"{label} evidence: INSUFFICIENT -> ABSTAIN")
+
+        semantic_results = scoring_results["semantic"]
+        keyword_results = scoring_results["keyword"]
+        hybrid_results = scoring_results["hybrid"]
+        rrf_only_results = scoring_results["rrf_only"]
 
         # ====================================================
         # EVALUATE ORIGINAL THREE METHODS
@@ -897,22 +938,10 @@ def run_benchmark(
         # PRESERVE RAW RETRIEVAL OUTPUT
         # ====================================================
 
-        comparison[
-            "raw_results"
-        ] = {
-            "semantic": (
-                semantic_results
-            ),
-            "keyword": (
-                keyword_results
-            ),
-            "hybrid": (
-                hybrid_results
-            ),
-            "rrf_only": (
-                rrf_only_results
-            ),
-        }
+        comparison["raw_results"] = raw_results
+        comparison["evidence_sufficiency"] = evidence_assessments
+
+        comparison["scope_assessment"] = scope_assessment
 
         case_results.append(
             comparison

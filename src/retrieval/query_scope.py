@@ -19,6 +19,10 @@ IN_SCOPE_TERMS = {
     "emergency department",
     "incident",
     "service disruption",
+    "major disruption",
+    "routine services",
+    "emergency transport",
+    "patient flow",
 }
 
 OUT_OF_SCOPE_TERMS = {
@@ -35,6 +39,11 @@ OUT_OF_SCOPE_TERMS = {
     "clinical advice",
     "current chief executive",
     "who is the current",
+    "current national nhs england",
+    "current performance",
+    "current operational performance",
+    "live nhs england",
+    "current nhs england",
 }
 
 
