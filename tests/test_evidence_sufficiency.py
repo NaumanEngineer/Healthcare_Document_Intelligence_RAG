@@ -265,3 +265,178 @@ def test_context_does_not_relax_specific_multi_topic_requirements():
     assert result["matched_query_terms"] == ["workforce"]
     assert "site_flow" in result["reason"]
     assert "operational_pressure" in result["evidence_terms"]
+# ---------------------------------------------------------------------------
+# Week 19 claim-level evidence completeness tests
+# ---------------------------------------------------------------------------
+
+
+def test_q063_fabricated_workforce_conflict_is_insufficient():
+    question = (
+        "DOC-003 requires operational staffing redeployment while DOC-011 "
+        "supposedly prohibits all redeployment. Which conflicting mandatory "
+        "instruction takes precedence?"
+    )
+
+    evidence = [
+        {
+            "document_id": "DOC-003",
+            "title": "Workforce Escalation Procedure",
+            "text": (
+                "Workforce escalation may include staffing redeployment, "
+                "review of rota gaps and operational staffing actions."
+            ),
+        },
+        {
+            "document_id": "DOC-011",
+            "title": "Critical Staffing Contingency Procedure",
+            "text": (
+                "Critical staffing pressure requires review of short-notice "
+                "rota changes and service resilience."
+            ),
+        },
+    ]
+
+    result = assess_evidence_sufficiency(question, evidence)
+
+    assert result["decision"] == "INSUFFICIENT"
+    assert result["sufficient"] is False
+    assert result["topic_sufficient"] is True
+    assert result["claim_sufficient"] is False
+
+    claim_types = {
+        claim["type"]
+        for claim in result["unsupported_claims"]
+    }
+
+    assert "contradiction_or_precedence_claim" in claim_types
+
+
+def test_q064_fabricated_policy_relationship_is_insufficient():
+    question = (
+        "The severe weather plan allegedly replaces all business continuity "
+        "arrangements, while the winter pressure plan forbids that replacement. "
+        "Which conflicting rule should operational teams enforce?"
+    )
+
+    evidence = [
+        {
+            "document_id": "DOC-009",
+            "title": "Severe Weather Operational Plan",
+            "text": (
+                "The severe weather plan supports readiness for weather "
+                "disruption and complements wider continuity arrangements."
+            ),
+        },
+        {
+            "document_id": "DOC-005",
+            "title": "Business Continuity Procedure",
+            "text": (
+                "Business continuity arrangements support essential services "
+                "during major disruption."
+            ),
+        },
+        {
+            "document_id": "DOC-002",
+            "title": "Winter Pressure Plan",
+            "text": (
+                "The winter pressure plan supports operational response during "
+                "periods of severe winter pressure."
+            ),
+        },
+    ]
+
+    result = assess_evidence_sufficiency(question, evidence)
+
+    assert result["decision"] == "INSUFFICIENT"
+    assert result["sufficient"] is False
+    assert result["topic_sufficient"] is True
+    assert result["claim_sufficient"] is False
+
+    claim_types = {
+        claim["type"]
+        for claim in result["unsupported_claims"]
+    }
+
+    assert "contradiction_or_precedence_claim" in claim_types
+
+
+def test_q065_partial_evidence_current_financial_penalty_is_insufficient():
+    question = (
+        "What ambulance handover indicators should be monitored, and what "
+        "exact national financial penalty applies to each delayed transfer today?"
+    )
+
+    evidence = [
+        {
+            "document_id": "DOC-008",
+            "title": "Ambulance Handover Escalation Guidance",
+            "text": (
+                "Monitor ambulance handover delays, persistent transfer delays "
+                "and escalation indicators."
+            ),
+        },
+        {
+            "document_id": "DOC-005",
+            "title": "Business Continuity Procedure",
+            "text": (
+                "Maintain essential services during major operational disruption."
+            ),
+        },
+    ]
+
+    result = assess_evidence_sufficiency(question, evidence)
+
+    assert result["decision"] == "INSUFFICIENT"
+    assert result["sufficient"] is False
+    assert result["topic_sufficient"] is True
+    assert result["claim_sufficient"] is False
+
+    claim_types = {
+        claim["type"]
+        for claim in result["unsupported_claims"]
+    }
+
+    assert "current_external_claim" in claim_types
+    assert "quantitative_claim" in claim_types
+
+
+def test_q067_partial_evidence_numerical_ward_trigger_is_insufficient():
+    question = (
+        "During an infection surge, what effects on operational bed flexibility "
+        "should be assessed and what exact numerical isolation-capacity trigger "
+        "mandates opening another ward?"
+    )
+
+    evidence = [
+        {
+            "document_id": "DOC-010",
+            "title": "Infection Surge Operational Response Plan",
+            "text": (
+                "During an infection surge, isolation requirements may reduce "
+                "operational bed flexibility."
+            ),
+        },
+        {
+            "document_id": "DOC-004",
+            "title": "Bed Capacity Management Procedure",
+            "text": (
+                "Review bed availability, planned admissions, discharges and "
+                "authorised escalation capacity."
+            ),
+        },
+    ]
+
+    result = assess_evidence_sufficiency(question, evidence)
+
+    assert result["decision"] == "INSUFFICIENT"
+    assert result["sufficient"] is False
+    assert result["topic_sufficient"] is True
+    assert result["claim_sufficient"] is False
+
+    claim_types = {
+        claim["type"]
+        for claim in result["unsupported_claims"]
+    }
+
+    assert "quantitative_claim" in claim_types
+    assert "procedural_claim" in claim_types
