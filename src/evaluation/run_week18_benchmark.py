@@ -35,6 +35,10 @@ from src.retrieval.hybrid_search_rrf_only import (
     hybrid_search_rrf_only,
 )
 
+from src.retrieval.hybrid_search_evidence_rescue import (
+    hybrid_search_evidence_rescue,
+)
+
 from src.retrieval.query_scope import assess_query_scope
 from src.retrieval.evidence_sufficiency import assess_evidence_sufficiency
 
@@ -610,6 +614,8 @@ def run_benchmark(
     4. RRF-only hybrid retrieval
        Semantic + BM25 -> RRF -> final selection
 
+    5. Experimental hybrid evidence rescue
+
     The fourth method tests the hypothesis that the existing
     post-fusion reranker may be undoing useful BM25/RRF signals.
     """
@@ -739,6 +745,9 @@ def run_benchmark(
             f"{query_id}: {question}"
         )
 
+        hybrid_rescue_results = []
+        hybrid_rescue_audit = None
+
         if scope_assessment["allowed"] is False:
             semantic_results = []
             keyword_results = []
@@ -861,6 +870,22 @@ def run_benchmark(
                 )
             )
 
+            hybrid_rescue_output = hybrid_search_evidence_rescue(
+                query=question,
+                chunks=chunks,
+                embedded_chunks=embedded_chunks,
+                model=model,
+                embedding_model=model_identifier,
+                semantic_k=SEMANTIC_K,
+                keyword_k=KEYWORD_K,
+                final_k=FINAL_K,
+                semantic_min_similarity=SEMANTIC_MIN_SIMILARITY,
+                keyword_min_score=KEYWORD_MIN_SCORE,
+                min_rrf_score=MIN_RRF_SCORE,
+            )
+            hybrid_rescue_results = hybrid_rescue_output["results"]
+            hybrid_rescue_audit = hybrid_rescue_output["audit"]
+
         # Preserve retrieval output before applying per-method evidence gates.
         raw_results = {
             "semantic": semantic_results,
@@ -884,6 +909,18 @@ def run_benchmark(
                         "rrf_only": "RRF-only",
                     }[method]
                     print(f"{label} evidence: INSUFFICIENT -> ABSTAIN")
+
+        # Rescue has already assessed its final evidence internally.
+        raw_results["hybrid_rescue"] = hybrid_rescue_results
+        rescue_evidence = (
+            hybrid_rescue_audit["final_evidence"]
+            if hybrid_rescue_audit is not None else None
+        )
+        evidence_assessments["hybrid_rescue"] = rescue_evidence
+        if rescue_evidence is None or rescue_evidence["decision"] != "SUFFICIENT":
+            hybrid_rescue_results = []
+            if rescue_evidence is not None:
+                print("Hybrid rescue evidence: INSUFFICIENT -> ABSTAIN")
 
         semantic_results = scoring_results["semantic"]
         keyword_results = scoring_results["keyword"]
@@ -938,6 +975,10 @@ def run_benchmark(
         # PRESERVE RAW RETRIEVAL OUTPUT
         # ====================================================
 
+        comparison["hybrid_rescue"] = evaluate_retrieval_results(
+            case=case, results=hybrid_rescue_results, top_k=FINAL_K,
+        )
+        comparison["hybrid_rescue_audit"] = hybrid_rescue_audit
         comparison["raw_results"] = raw_results
         comparison["evidence_sufficiency"] = evidence_assessments
 
@@ -970,6 +1011,7 @@ def run_benchmark(
             "RRF-only:",
             rrf_only_results,
         )
+        print_method_results("Hybrid rescue:", hybrid_rescue_results)
 
         print()
 
@@ -1000,6 +1042,8 @@ def run_benchmark(
     # EXPERIMENT METADATA
     # --------------------------------------------------------
 
+    summary["hybrid_rescue"] = summarise_method(case_results, "hybrid_rescue")
+
     raw_files = (
         get_raw_corpus_files()
     )
@@ -1010,7 +1054,7 @@ def run_benchmark(
         ),
         "experiment_description": (
             "Semantic vs BM25 vs original hybrid "
-            "vs RRF-only hybrid retrieval"
+            "vs RRF-only hybrid vs evidence-rescue hybrid retrieval"
         ),
         "evaluation_case_count": (
             len(cases)
@@ -1050,6 +1094,7 @@ def run_benchmark(
                 MIN_RRF_SCORE
             ),
             "rrf_only_experiment": True,
+            "hybrid_rescue_experiment": True,
         },
         "summary": (
             summary
@@ -1100,6 +1145,7 @@ def run_benchmark(
         "keyword",
         "hybrid",
         "rrf_only",
+        "hybrid_rescue",
     ):
         metrics = (
             summary[

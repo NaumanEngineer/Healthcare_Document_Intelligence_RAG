@@ -24,7 +24,7 @@ def run_case(monkeypatch, tmp_path):
     monkeypatch.setattr(runner, "embed_chunks", lambda **kwargs: [])
     monkeypatch.setattr(runner, "OUTPUT_FILE", tmp_path / "benchmark.json")
 
-    def run(question, method_results, expected_abstention=False):
+    def run(question, method_results, expected_abstention=False, rescue_output=None):
         monkeypatch.setattr(runner, "load_evaluation_cases", lambda: [{
             "query_id": "TEST", "question": question,
             "expected_document_id": "DOC-001",
@@ -34,9 +34,15 @@ def run_case(monkeypatch, tmp_path):
         for method, function in METHODS.items():
             mocks[method] = Mock(return_value=method_results[method])
             monkeypatch.setattr(runner, function, mocks[method])
+        mocks["hybrid_rescue"] = Mock(return_value=rescue_output or {
+            "results": [], "audit": {"final_evidence": {"decision": "SUFFICIENT"}},
+        })
+        monkeypatch.setattr(runner, "hybrid_search_evidence_rescue", mocks["hybrid_rescue"])
         output = runner.run_benchmark()
         saved = json.loads(runner.OUTPUT_FILE.read_text(encoding="utf-8"))
         assert saved == output
+        assert "hybrid_rescue" in saved["summary"]
+        assert saved["summary"]["hybrid_rescue"]["evaluated_cases"] == 1
         return saved["case_results"][0], mocks
 
     return run
@@ -53,7 +59,7 @@ def test_evidence_gates_each_method_independently(run_case, blocked_method, caps
                             "title": "Bed capacity guidance"}]
     case, mocks = run_case("What guidance covers workforce?", raw, True)
     assert case["scope_assessment"]["allowed"] is True
-    assert case["raw_results"] == raw
+    assert {m: case["raw_results"][m] for m in METHODS} == raw
     for method in METHODS:
         mocks[method].assert_called_once()
         assessment = case["evidence_sufficiency"][method]
@@ -72,6 +78,10 @@ def test_scope_abstention_skips_retrieval_and_evidence(run_case, monkeypatch, ca
     )
     assert case["scope_assessment"]["allowed"] is False
     assessor.assert_not_called()
+    mocks["hybrid_rescue"].assert_not_called()
+    assert case["hybrid_rescue_audit"] is None
+    assert case["raw_results"]["hybrid_rescue"] == []
+    assert case["hybrid_rescue"]["abstention_success"] is True
     for method in METHODS:
         mocks[method].assert_not_called()
         assert case["raw_results"][method] == []
@@ -103,3 +113,33 @@ def test_real_gates_control_scoring_with_fixture_retrieval(run_case, question, t
         assert case["evidence_sufficiency"][method]["sufficient"] is sufficient
         assert case[method]["result_count"] == int(sufficient)
         assert case["raw_results"][method] == raw[method]
+
+
+@pytest.mark.parametrize("decision", ["SUFFICIENT", "INSUFFICIENT"])
+def test_rescue_uses_own_final_decision_and_preserves_audit(run_case, monkeypatch, decision):
+    # Deliberately use results that the ordinary gate would reject. The benchmark
+    # must trust the rescue module's final decision, not run that gate twice.
+    returned = [{"document_id": "DOC-009", "status": "Active", "title": "Weather"}]
+    audit = {"final_evidence": {"decision": decision}, "rescue_attempted": True,
+             "rescued_chunk_ids": ["DOC-009-C001"]}
+    checker = Mock(wraps=runner.assess_evidence_sufficiency)
+    monkeypatch.setattr(runner, "assess_evidence_sufficiency", checker)
+    case, mocks = run_case(
+        "Workforce guidance", {m: [] for m in METHODS}, True,
+        rescue_output={"results": returned, "audit": audit},
+    )
+    assert checker.call_count == 4
+    mocks["hybrid_rescue"].assert_called_once()
+    kwargs = mocks["hybrid_rescue"].call_args.kwargs
+    assert kwargs["final_k"] == runner.FINAL_K
+    assert kwargs["semantic_k"] == runner.SEMANTIC_K
+    assert kwargs["keyword_k"] == runner.KEYWORD_K
+    assert kwargs["semantic_min_similarity"] == runner.SEMANTIC_MIN_SIMILARITY
+    assert kwargs["keyword_min_score"] == runner.KEYWORD_MIN_SCORE
+    assert kwargs["min_rrf_score"] == runner.MIN_RRF_SCORE
+    assert case["raw_results"]["hybrid_rescue"] == returned
+    assert case["hybrid_rescue_audit"] == audit
+    assert case["evidence_sufficiency"]["hybrid_rescue"] == audit["final_evidence"]
+    assert case["hybrid_rescue"]["result_count"] == int(decision == "SUFFICIENT")
+    assert case["hybrid_rescue"]["abstention_success"] is (decision == "INSUFFICIENT")
+    assert case["hybrid"]["result_count"] == 0

@@ -55,3 +55,30 @@ def rerank_candidates(
         )
 
     return results
+
+
+
+def rerank_hybrid_candidates(
+    candidates: list[dict],
+) -> list[dict]:
+    """Rank by Active status, descending RRF score, then descending chunk ID.
+
+    Preserve fusion audit fields without reintroducing semantic-score bias.
+    Return copies so the original candidates remain unchanged.
+    """
+    if not isinstance(candidates, list):
+        raise TypeError("candidates must be a list")
+
+    reranked = sorted(
+        candidates,
+        key=lambda item: (
+            item.get("status") == "Active",
+            item.get("rrf_score", float("-inf")),
+            item.get("chunk_id", ""),
+        ),
+        reverse=True,
+    )
+    return [
+        {**candidate, "hybrid_rerank_rank": rank}
+        for rank, candidate in enumerate(reranked, start=1)
+    ]
