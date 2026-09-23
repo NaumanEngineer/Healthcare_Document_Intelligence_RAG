@@ -57,6 +57,9 @@ CONCEPT_ALIASES = {
     "severe_weather": (
         "severe weather",
         "weather disruption",
+        "forecast weather",
+        "weather warnings",
+        "forecast weather disruption",
     ),
     "business_continuity": (
         "business continuity",

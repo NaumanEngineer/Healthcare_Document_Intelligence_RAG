@@ -299,3 +299,171 @@ def decide_review_outcome(
         "may_generate_answer": False,
         "document_ids": document_ids,
     }
+
+
+def decide_post_generation_outcome(
+    pre_generation_decision: dict[str, Any],
+    citation_verification: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    Apply post-generation governance after citation verification.
+
+    This function does not replace the existing pre-generation
+    governance decision.
+
+    It adds a second safety gate after an answer has been generated.
+
+    Expected citation_verification decisions:
+
+    - PASS
+    - REVIEW_REQUIRED
+    - ABSTAIN
+    """
+
+    if not isinstance(
+        pre_generation_decision,
+        dict,
+    ):
+        raise TypeError(
+            "pre_generation_decision must be a dictionary"
+        )
+
+    if not isinstance(
+        citation_verification,
+        dict,
+    ):
+        raise TypeError(
+            "citation_verification must be a dictionary"
+        )
+
+    pre_decision = (
+        pre_generation_decision.get(
+            "decision"
+        )
+    )
+
+    citation_decision = (
+        citation_verification.get(
+            "decision"
+        )
+    )
+
+    document_ids = (
+        pre_generation_decision.get(
+            "document_ids",
+            [],
+        )
+    )
+
+    # --------------------------------------------------------------
+    # Pre-generation ABSTAIN remains authoritative.
+    # --------------------------------------------------------------
+
+    if pre_decision == ABSTAIN:
+        return {
+            "decision": ABSTAIN,
+            "reason": (
+                "Pre-generation governance requires abstention. "
+                "Post-generation citation verification cannot "
+                "override that decision."
+            ),
+            "requires_human_review": False,
+            "may_return_answer": False,
+            "document_ids": document_ids,
+        }
+
+    # --------------------------------------------------------------
+    # Pre-generation human review remains authoritative.
+    # --------------------------------------------------------------
+
+    if pre_decision == REVIEW_REQUIRED:
+        return {
+            "decision": REVIEW_REQUIRED,
+            "reason": (
+                "Pre-generation governance already requires "
+                "human review."
+            ),
+            "requires_human_review": True,
+            "may_return_answer": False,
+            "document_ids": document_ids,
+        }
+
+    # --------------------------------------------------------------
+    # Only AUTO_ANSWER can proceed to post-generation validation.
+    # --------------------------------------------------------------
+
+    if pre_decision != AUTO_ANSWER:
+        return {
+            "decision": REVIEW_REQUIRED,
+            "reason": (
+                "Unrecognised pre-generation decision. "
+                "Human review is required."
+            ),
+            "requires_human_review": True,
+            "may_return_answer": False,
+            "document_ids": document_ids,
+        }
+
+    # --------------------------------------------------------------
+    # Citation verifier explicitly abstains.
+    # --------------------------------------------------------------
+
+    if citation_decision == ABSTAIN:
+        return {
+            "decision": ABSTAIN,
+            "reason": (
+                "Post-generation citation verification "
+                "could not validate the generated answer."
+            ),
+            "requires_human_review": False,
+            "may_return_answer": False,
+            "document_ids": document_ids,
+        }
+
+    # --------------------------------------------------------------
+    # Citation verifier requires human review.
+    # --------------------------------------------------------------
+
+    if citation_decision == REVIEW_REQUIRED:
+        return {
+            "decision": REVIEW_REQUIRED,
+            "reason": (
+                "Generated answer contains unsupported, "
+                "partially supported, or mismatched citations."
+            ),
+            "requires_human_review": True,
+            "may_return_answer": False,
+            "document_ids": document_ids,
+        }
+
+    # --------------------------------------------------------------
+    # Citation verifier passes.
+    # --------------------------------------------------------------
+
+    if citation_decision == "PASS":
+        return {
+            "decision": AUTO_ANSWER,
+            "reason": (
+                "Pre-generation governance approved automatic "
+                "answering and all material answer claims passed "
+                "citation verification."
+            ),
+            "requires_human_review": False,
+            "may_return_answer": True,
+            "document_ids": document_ids,
+        }
+
+    # --------------------------------------------------------------
+    # Fail-safe for unknown citation decisions.
+    # --------------------------------------------------------------
+
+    return {
+        "decision": REVIEW_REQUIRED,
+        "reason": (
+            "Citation verification returned an unrecognised "
+            "decision. Human review is required."
+        ),
+        "requires_human_review": True,
+        "may_return_answer": False,
+        "document_ids": document_ids,
+    }
