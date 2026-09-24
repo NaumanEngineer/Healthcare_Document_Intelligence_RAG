@@ -1,0 +1,407 @@
+[
+  {
+    "case_id": "CIT001",
+    "category": "fully_grounded",
+    "question": "What should teams do before severe weather disrupts services?",
+    "claims": [
+      {
+        "claim_id": "C1",
+        "claim_text": "Teams should prepare before severe weather disruption affects service delivery.",
+        "citation": {
+          "document_id": "DOC-009",
+          "chunk_id": "DOC-009-01"
+        }
+      }
+    ],
+    "evidence_items": [
+      {
+        "document_id": "DOC-009",
+        "chunk_id": "DOC-009-01",
+        "status": "Active",
+        "title": "Severe Weather Operational Plan",
+        "text": "The severe weather operational plan supports preparation before weather disruption affects service delivery."
+      }
+    ],
+    "expected_decision": "PASS"
+  },
+  {
+    "case_id": "CIT002",
+    "category": "partially_grounded",
+    "question": "What should teams do during severe weather?",
+    "claims": [
+      {
+        "claim_id": "C1",
+        "claim_text": "Teams should prepare before disruption and cancel all elective activity.",
+        "citation": {
+          "document_id": "DOC-009",
+          "chunk_id": "DOC-009-01"
+        }
+      }
+    ],
+    "evidence_items": [
+      {
+        "document_id": "DOC-009",
+        "chunk_id": "DOC-009-01",
+        "status": "Active",
+        "title": "Severe Weather Operational Plan",
+        "text": "The severe weather operational plan supports preparation before weather disruption affects service delivery."
+      }
+    ],
+    "expected_decision": "REVIEW_REQUIRED"
+  },
+  {
+    "case_id": "CIT003",
+    "category": "unsupported_extra_detail",
+    "question": "How should ambulance handover pressure be managed?",
+    "claims": [
+      {
+        "claim_id": "C1",
+        "claim_text": "Ambulance handover delays should be monitored.",
+        "citation": {
+          "document_id": "DOC-008",
+          "chunk_id": "DOC-008-01"
+        }
+      },
+      {
+        "claim_id": "C2",
+        "claim_text": "The chief executive must personally approve every delayed transfer.",
+        "citation": {
+          "document_id": "DOC-008",
+          "chunk_id": "DOC-008-01"
+        }
+      }
+    ],
+    "evidence_items": [
+      {
+        "document_id": "DOC-008",
+        "chunk_id": "DOC-008-01",
+        "status": "Active",
+        "title": "Ambulance Handover Escalation Guidance",
+        "text": "Operational teams should monitor ambulance handover delays and persistent transfer delays."
+      }
+    ],
+    "expected_decision": "REVIEW_REQUIRED"
+  },
+  {
+    "case_id": "CIT004",
+    "category": "wrong_citation",
+    "question": "Which guidance covers ambulance handover delays?",
+    "claims": [
+      {
+        "claim_id": "C1",
+        "claim_text": "Ambulance handover delays should be monitored.",
+        "citation": {
+          "document_id": "DOC-009",
+          "chunk_id": "DOC-009-01"
+        }
+      }
+    ],
+    "evidence_items": [
+      {
+        "document_id": "DOC-008",
+        "chunk_id": "DOC-008-01",
+        "status": "Active",
+        "title": "Ambulance Handover Escalation Guidance",
+        "text": "Operational teams should monitor ambulance handover delays and persistent transfer delays."
+      }
+    ],
+    "expected_decision": "REVIEW_REQUIRED"
+  },
+  {
+    "case_id": "CIT005",
+    "category": "multi_document_grounded",
+    "question": "How should severe weather and ambulance handover pressure be handled together?",
+    "claims": [
+      {
+        "claim_id": "C1",
+        "claim_text": "Severe weather preparation should begin before disruption.",
+        "citation": {
+          "document_id": "DOC-009",
+          "chunk_id": "DOC-009-01"
+        }
+      },
+      {
+        "claim_id": "C2",
+        "claim_text": "Ambulance handover delays should be monitored.",
+        "citation": {
+          "document_id": "DOC-008",
+          "chunk_id": "DOC-008-01"
+        }
+      }
+    ],
+    "evidence_items": [
+      {
+        "document_id": "DOC-009",
+        "chunk_id": "DOC-009-01",
+        "status": "Active",
+        "title": "Severe Weather Operational Plan",
+        "text": "Severe weather preparation should begin before disruption."
+      },
+      {
+        "document_id": "DOC-008",
+        "chunk_id": "DOC-008-01",
+        "status": "Active",
+        "title": "Ambulance Handover Escalation Guidance",
+        "text": "Ambulance handover delays should be monitored."
+      }
+    ],
+    "expected_decision": "PASS"
+  },
+  {
+    "case_id": "CIT006",
+    "category": "lifecycle_unsafe",
+    "question": "What escalation process should be used?",
+    "claims": [
+      {
+        "claim_id": "C1",
+        "claim_text": "Operational escalation guidance should be followed.",
+        "citation": {
+          "document_id": "DOC-001",
+          "chunk_id": "DOC-001-OLD"
+        }
+      }
+    ],
+    "evidence_items": [
+      {
+        "document_id": "DOC-001",
+        "chunk_id": "DOC-001-OLD",
+        "status": "Superseded",
+        "title": "Operational Escalation Policy",
+        "text": "Operational escalation guidance should be followed."
+      }
+    ],
+    "expected_decision": "REVIEW_REQUIRED"
+  },
+  {
+    "case_id": "CIT007",
+    "category": "grounded_paraphrase",
+    "question": "What should happen when normal services cannot continue?",
+    "claims": [
+      {
+        "claim_id": "C1",
+        "claim_text": "Essential services should be kept running when usual arrangements are disrupted.",
+        "citation": {
+          "document_id": "DOC-005",
+          "chunk_id": "DOC-005-01"
+        }
+      }
+    ],
+    "evidence_items": [
+      {
+        "document_id": "DOC-005",
+        "chunk_id": "DOC-005-01",
+        "status": "Active",
+        "title": "Business Continuity Procedure",
+        "text": "Business continuity arrangements maintain essential services when routine services are disrupted."
+      }
+    ],
+    "expected_decision": "PASS"
+  },
+  {
+    "case_id": "CIT008",
+    "category": "overconfident_interpretation",
+    "question": "What should be done about bed occupancy?",
+    "claims": [
+      {
+        "claim_id": "C1",
+        "claim_text": "Bed occupancy must trigger immediate executive escalation whenever pressure is identified.",
+        "citation": {
+          "document_id": "DOC-004",
+          "chunk_id": "DOC-004-01"
+        }
+      }
+    ],
+    "evidence_items": [
+      {
+        "document_id": "DOC-004",
+        "chunk_id": "DOC-004-01",
+        "status": "Active",
+        "title": "Bed Capacity Management Procedure",
+        "text": "Operational teams should review hospital bed capacity and occupancy."
+      }
+    ],
+    "expected_decision": "REVIEW_REQUIRED"
+  },
+  {
+    "case_id": "CIT009",
+    "category": "fabricated_quantitative_threshold",
+    "question": "What threshold applies to bed occupancy?",
+    "claims": [
+      {
+        "claim_id": "C1",
+        "claim_text": "Bed occupancy above 92 percent requires immediate executive escalation.",
+        "citation": {
+          "document_id": "DOC-004",
+          "chunk_id": "DOC-004-01"
+        }
+      }
+    ],
+    "evidence_items": [
+      {
+        "document_id": "DOC-004",
+        "chunk_id": "DOC-004-01",
+        "status": "Active",
+        "title": "Bed Capacity Management Procedure",
+        "text": "Operational teams should review hospital bed capacity and occupancy."
+      }
+    ],
+    "expected_decision": "REVIEW_REQUIRED"
+  },
+  {
+    "case_id": "CIT010",
+    "category": "corrective_false_premise",
+    "question": "Which policy takes precedence in the conflict between DOC-003 and DOC-011?",
+    "claims": [
+      {
+        "claim_id": "C1",
+        "claim_text": "The available evidence does not establish that DOC-003 and DOC-011 conflict.",
+        "citation": {
+          "document_id": "DOC-003",
+          "chunk_id": "DOC-003-01"
+        }
+      }
+    ],
+    "evidence_items": [
+      {
+        "document_id": "DOC-003",
+        "chunk_id": "DOC-003-01",
+        "status": "Active",
+        "title": "Workforce Escalation Procedure",
+        "text": "The workforce escalation procedure describes staffing escalation actions."
+      },
+      {
+        "document_id": "DOC-011",
+        "chunk_id": "DOC-011-01",
+        "status": "Active",
+        "title": "Critical Staffing Contingency Procedure",
+        "text": "The critical staffing contingency procedure describes short-term staffing resilience actions."
+      }
+    ],
+    "expected_decision": "PASS"
+  },
+  {
+    "case_id": "CIT011",
+    "category": "near_match_invented_action",
+    "question": "What should teams do during severe weather?",
+    "claims": [
+      {
+        "claim_id": "C1",
+        "claim_text": "Teams should prepare before severe weather disruption and suspend all outpatient clinics.",
+        "citation": {
+          "document_id": "DOC-009",
+          "chunk_id": "DOC-009-01"
+        }
+      }
+    ],
+    "evidence_items": [
+      {
+        "document_id": "DOC-009",
+        "chunk_id": "DOC-009-01",
+        "status": "Active",
+        "title": "Severe Weather Operational Plan",
+        "text": "The severe weather operational plan supports preparation before weather disruption affects service delivery."
+      }
+    ],
+    "expected_decision": "REVIEW_REQUIRED"
+  },
+  {
+    "case_id": "CIT012",
+    "category": "near_match_wrong_number",
+    "question": "What threshold applies to bed occupancy?",
+    "claims": [
+      {
+        "claim_id": "C1",
+        "claim_text": "Hospital bed occupancy should be reviewed and 95 percent occupancy requires escalation.",
+        "citation": {
+          "document_id": "DOC-004",
+          "chunk_id": "DOC-004-01"
+        }
+      }
+    ],
+    "evidence_items": [
+      {
+        "document_id": "DOC-004",
+        "chunk_id": "DOC-004-01",
+        "status": "Active",
+        "title": "Bed Capacity Management Procedure",
+        "text": "Operational teams should review hospital bed capacity and occupancy."
+      }
+    ],
+    "expected_decision": "REVIEW_REQUIRED"
+  },
+  {
+    "case_id": "CIT013",
+    "category": "near_match_wrong_mandatory_wording",
+    "question": "What should managers do during staffing pressure?",
+    "claims": [
+      {
+        "claim_id": "C1",
+        "claim_text": "Managers must immediately redeploy all available staff whenever workforce pressure is identified.",
+        "citation": {
+          "document_id": "DOC-003",
+          "chunk_id": "DOC-003-01"
+        }
+      }
+    ],
+    "evidence_items": [
+      {
+        "document_id": "DOC-003",
+        "chunk_id": "DOC-003-01",
+        "status": "Active",
+        "title": "Workforce Escalation Procedure",
+        "text": "Operational teams should review workforce pressure, staffing gaps and available escalation options."
+      }
+    ],
+    "expected_decision": "REVIEW_REQUIRED"
+  },
+  {
+    "case_id": "CIT014",
+    "category": "near_match_wrong_actor",
+    "question": "Who should manage ambulance handover delays?",
+    "claims": [
+      {
+        "claim_id": "C1",
+        "claim_text": "The chief executive must personally manage every ambulance handover delay.",
+        "citation": {
+          "document_id": "DOC-008",
+          "chunk_id": "DOC-008-01"
+        }
+      }
+    ],
+    "evidence_items": [
+      {
+        "document_id": "DOC-008",
+        "chunk_id": "DOC-008-01",
+        "status": "Active",
+        "title": "Ambulance Handover Escalation Guidance",
+        "text": "Operational teams should monitor ambulance handover delays and persistent transfer delays."
+      }
+    ],
+    "expected_decision": "REVIEW_REQUIRED"
+  },
+  {
+    "case_id": "CIT015",
+    "category": "near_match_wrong_deadline",
+    "question": "How quickly must business continuity actions be completed?",
+    "claims": [
+      {
+        "claim_id": "C1",
+        "claim_text": "Business continuity arrangements must restore all essential services within 30 minutes.",
+        "citation": {
+          "document_id": "DOC-005",
+          "chunk_id": "DOC-005-01"
+        }
+      }
+    ],
+    "evidence_items": [
+      {
+        "document_id": "DOC-005",
+        "chunk_id": "DOC-005-01",
+        "status": "Active",
+        "title": "Business Continuity Procedure",
+        "text": "Business continuity arrangements maintain essential services when routine services are disrupted."
+      }
+    ],
+    "expected_decision": "REVIEW_REQUIRED"
+  }
+]

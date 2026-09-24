@@ -1,0 +1,380 @@
+{
+  "summary": {
+    "total_cases": 10,
+    "correct_cases": 8,
+    "accuracy": 0.8,
+    "false_acceptances": 0,
+    "false_rejections": 2
+  },
+  "results": [
+    {
+      "case_id": "CIT001",
+      "category": "fully_grounded",
+      "expected_decision": "PASS",
+      "actual_decision": "PASS",
+      "correct": true,
+      "verification": {
+        "decision": "PASS",
+        "reason": "All material answer claims are supported by their cited evidence.",
+        "claim_count": 1,
+        "claim_results": [
+          {
+            "claim_id": "C1",
+            "claim_text": "Teams should prepare before severe weather disruption affects service delivery.",
+            "status": "SUPPORTED",
+            "reason": "Cited evidence contains sufficient material lexical support for the claim.",
+            "support_ratio": 0.7778,
+            "matched_terms": [
+              "affects",
+              "before",
+              "delivery",
+              "disruption",
+              "service",
+              "severe",
+              "weather"
+            ],
+            "missing_terms": [
+              "prepare",
+              "teams"
+            ],
+            "document_id": "DOC-009",
+            "chunk_id": "DOC-009-01"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CIT002",
+      "category": "partially_grounded",
+      "expected_decision": "REVIEW_REQUIRED",
+      "actual_decision": "REVIEW_REQUIRED",
+      "correct": true,
+      "verification": {
+        "decision": "REVIEW_REQUIRED",
+        "reason": "At least one answer claim is only partially supported.",
+        "claim_count": 1,
+        "claim_results": [
+          {
+            "claim_id": "C1",
+            "claim_text": "Teams should prepare before disruption and cancel all elective activity.",
+            "status": "PARTIALLY_SUPPORTED",
+            "reason": "Cited evidence supports part of the claim but material terms are missing.",
+            "support_ratio": 0.25,
+            "matched_terms": [
+              "before",
+              "disruption"
+            ],
+            "missing_terms": [
+              "activity",
+              "all",
+              "cancel",
+              "elective",
+              "prepare",
+              "teams"
+            ],
+            "document_id": "DOC-009",
+            "chunk_id": "DOC-009-01"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CIT003",
+      "category": "unsupported_extra_detail",
+      "expected_decision": "REVIEW_REQUIRED",
+      "actual_decision": "REVIEW_REQUIRED",
+      "correct": true,
+      "verification": {
+        "decision": "REVIEW_REQUIRED",
+        "reason": "At least one answer claim is only partially supported.",
+        "claim_count": 2,
+        "claim_results": [
+          {
+            "claim_id": "C1",
+            "claim_text": "Ambulance handover delays should be monitored.",
+            "status": "SUPPORTED",
+            "reason": "Cited evidence contains sufficient material lexical support for the claim.",
+            "support_ratio": 0.75,
+            "matched_terms": [
+              "ambulance",
+              "delays",
+              "handover"
+            ],
+            "missing_terms": [
+              "monitored"
+            ],
+            "document_id": "DOC-008",
+            "chunk_id": "DOC-008-01"
+          },
+          {
+            "claim_id": "C2",
+            "claim_text": "The chief executive must personally approve every delayed transfer.",
+            "status": "PARTIALLY_SUPPORTED",
+            "reason": "Cited evidence supports part of the claim but material terms are missing.",
+            "support_ratio": 0.1429,
+            "matched_terms": [
+              "transfer"
+            ],
+            "missing_terms": [
+              "approve",
+              "chief",
+              "delayed",
+              "every",
+              "executive",
+              "personally"
+            ],
+            "document_id": "DOC-008",
+            "chunk_id": "DOC-008-01"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CIT004",
+      "category": "wrong_citation",
+      "expected_decision": "REVIEW_REQUIRED",
+      "actual_decision": "REVIEW_REQUIRED",
+      "correct": true,
+      "verification": {
+        "decision": "REVIEW_REQUIRED",
+        "reason": "At least one answer claim has a citation mismatch.",
+        "claim_count": 1,
+        "claim_results": [
+          {
+            "claim_id": "C1",
+            "claim_text": "Ambulance handover delays should be monitored.",
+            "status": "CITATION_MISMATCH",
+            "reason": "Citation does not resolve to supplied evidence.",
+            "support_ratio": 0.0,
+            "matched_terms": [],
+            "missing_terms": [
+              "ambulance",
+              "delays",
+              "handover",
+              "monitored"
+            ],
+            "document_id": "DOC-009",
+            "chunk_id": "DOC-009-01"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CIT005",
+      "category": "multi_document_grounded",
+      "expected_decision": "PASS",
+      "actual_decision": "PASS",
+      "correct": true,
+      "verification": {
+        "decision": "PASS",
+        "reason": "All material answer claims are supported by their cited evidence.",
+        "claim_count": 2,
+        "claim_results": [
+          {
+            "claim_id": "C1",
+            "claim_text": "Severe weather preparation should begin before disruption.",
+            "status": "SUPPORTED",
+            "reason": "Cited evidence contains sufficient material lexical support for the claim.",
+            "support_ratio": 1.0,
+            "matched_terms": [
+              "before",
+              "begin",
+              "disruption",
+              "preparation",
+              "severe",
+              "weather"
+            ],
+            "missing_terms": [],
+            "document_id": "DOC-009",
+            "chunk_id": "DOC-009-01"
+          },
+          {
+            "claim_id": "C2",
+            "claim_text": "Ambulance handover delays should be monitored.",
+            "status": "SUPPORTED",
+            "reason": "Cited evidence contains sufficient material lexical support for the claim.",
+            "support_ratio": 1.0,
+            "matched_terms": [
+              "ambulance",
+              "delays",
+              "handover",
+              "monitored"
+            ],
+            "missing_terms": [],
+            "document_id": "DOC-008",
+            "chunk_id": "DOC-008-01"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CIT006",
+      "category": "lifecycle_unsafe",
+      "expected_decision": "REVIEW_REQUIRED",
+      "actual_decision": "REVIEW_REQUIRED",
+      "correct": true,
+      "verification": {
+        "decision": "REVIEW_REQUIRED",
+        "reason": "At least one answer claim has a citation mismatch.",
+        "claim_count": 1,
+        "claim_results": [
+          {
+            "claim_id": "C1",
+            "claim_text": "Operational escalation guidance should be followed.",
+            "status": "CITATION_MISMATCH",
+            "reason": "Citation points to evidence that is not lifecycle-safe.",
+            "support_ratio": 0.0,
+            "matched_terms": [],
+            "missing_terms": [
+              "escalation",
+              "followed",
+              "guidance",
+              "operational"
+            ],
+            "document_id": "DOC-001",
+            "chunk_id": "DOC-001-OLD"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CIT007",
+      "category": "grounded_paraphrase",
+      "expected_decision": "PASS",
+      "actual_decision": "REVIEW_REQUIRED",
+      "correct": false,
+      "verification": {
+        "decision": "REVIEW_REQUIRED",
+        "reason": "At least one answer claim is only partially supported.",
+        "claim_count": 1,
+        "claim_results": [
+          {
+            "claim_id": "C1",
+            "claim_text": "Essential services should be kept running when usual arrangements are disrupted.",
+            "status": "PARTIALLY_SUPPORTED",
+            "reason": "Cited evidence supports part of the claim but material terms are missing.",
+            "support_ratio": 0.5714,
+            "matched_terms": [
+              "arrangements",
+              "disrupted",
+              "essential",
+              "services"
+            ],
+            "missing_terms": [
+              "kept",
+              "running",
+              "usual"
+            ],
+            "document_id": "DOC-005",
+            "chunk_id": "DOC-005-01"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CIT008",
+      "category": "overconfident_interpretation",
+      "expected_decision": "REVIEW_REQUIRED",
+      "actual_decision": "REVIEW_REQUIRED",
+      "correct": true,
+      "verification": {
+        "decision": "REVIEW_REQUIRED",
+        "reason": "At least one answer claim is only partially supported.",
+        "claim_count": 1,
+        "claim_results": [
+          {
+            "claim_id": "C1",
+            "claim_text": "Bed occupancy must trigger immediate executive escalation whenever pressure is identified.",
+            "status": "PARTIALLY_SUPPORTED",
+            "reason": "Cited evidence supports part of the claim but material terms are missing.",
+            "support_ratio": 0.2222,
+            "matched_terms": [
+              "bed",
+              "occupancy"
+            ],
+            "missing_terms": [
+              "escalation",
+              "executive",
+              "identified",
+              "immediate",
+              "pressure",
+              "trigger",
+              "whenever"
+            ],
+            "document_id": "DOC-004",
+            "chunk_id": "DOC-004-01"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CIT009",
+      "category": "fabricated_quantitative_threshold",
+      "expected_decision": "REVIEW_REQUIRED",
+      "actual_decision": "REVIEW_REQUIRED",
+      "correct": true,
+      "verification": {
+        "decision": "REVIEW_REQUIRED",
+        "reason": "At least one answer claim is only partially supported.",
+        "claim_count": 1,
+        "claim_results": [
+          {
+            "claim_id": "C1",
+            "claim_text": "Bed occupancy above 92 percent requires immediate executive escalation.",
+            "status": "PARTIALLY_SUPPORTED",
+            "reason": "Cited evidence supports part of the claim but material terms are missing.",
+            "support_ratio": 0.25,
+            "matched_terms": [
+              "bed",
+              "occupancy"
+            ],
+            "missing_terms": [
+              "above",
+              "escalation",
+              "executive",
+              "immediate",
+              "percent",
+              "requires"
+            ],
+            "document_id": "DOC-004",
+            "chunk_id": "DOC-004-01"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CIT010",
+      "category": "corrective_false_premise",
+      "expected_decision": "PASS",
+      "actual_decision": "REVIEW_REQUIRED",
+      "correct": false,
+      "verification": {
+        "decision": "REVIEW_REQUIRED",
+        "reason": "At least one answer claim is unsupported.",
+        "claim_count": 1,
+        "claim_results": [
+          {
+            "claim_id": "C1",
+            "claim_text": "The available evidence does not establish that DOC-003 and DOC-011 conflict.",
+            "status": "UNSUPPORTED",
+            "reason": "Cited evidence does not contain material support for the claim.",
+            "support_ratio": 0.0,
+            "matched_terms": [],
+            "missing_terms": [
+              "003",
+              "011",
+              "available",
+              "conflict",
+              "doc",
+              "establish",
+              "evidence",
+              "not"
+            ],
+            "document_id": "DOC-003",
+            "chunk_id": "DOC-003-01"
+          }
+        ]
+      }
+    }
+  ]
+}
