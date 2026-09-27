@@ -1,10 +1,10 @@
 {
   "summary": {
-    "total_cases": 10,
-    "correct_cases": 8,
-    "accuracy": 0.8,
+    "total_cases": 15,
+    "correct_cases": 14,
+    "accuracy": 0.9333333333333333,
     "false_acceptances": 0,
-    "false_rejections": 2
+    "false_rejections": 1
   },
   "results": [
     {
@@ -15,7 +15,7 @@
       "correct": true,
       "verification": {
         "decision": "PASS",
-        "reason": "All material answer claims are supported by their cited evidence.",
+        "reason": "All material answer claims are supported by lifecycle-safe cited evidence.",
         "claim_count": 1,
         "claim_results": [
           {
@@ -58,7 +58,7 @@
             "claim_id": "C1",
             "claim_text": "Teams should prepare before disruption and cancel all elective activity.",
             "status": "PARTIALLY_SUPPORTED",
-            "reason": "Cited evidence supports part of the claim but material terms are missing.",
+            "reason": "Claim contains a material high-risk mismatch that blocks semantic rescue: unsupported_action",
             "support_ratio": 0.25,
             "matched_terms": [
               "before",
@@ -110,7 +110,7 @@
             "claim_id": "C2",
             "claim_text": "The chief executive must personally approve every delayed transfer.",
             "status": "PARTIALLY_SUPPORTED",
-            "reason": "Cited evidence supports part of the claim but material terms are missing.",
+            "reason": "Claim contains a material high-risk mismatch that blocks semantic rescue: unsupported_mandatory_wording, unsupported_actor",
             "support_ratio": 0.1429,
             "matched_terms": [
               "transfer"
@@ -167,7 +167,7 @@
       "correct": true,
       "verification": {
         "decision": "PASS",
-        "reason": "All material answer claims are supported by their cited evidence.",
+        "reason": "All material answer claims are supported by lifecycle-safe cited evidence.",
         "claim_count": 2,
         "claim_results": [
           {
@@ -241,18 +241,18 @@
       "case_id": "CIT007",
       "category": "grounded_paraphrase",
       "expected_decision": "PASS",
-      "actual_decision": "REVIEW_REQUIRED",
-      "correct": false,
+      "actual_decision": "PASS",
+      "correct": true,
       "verification": {
-        "decision": "REVIEW_REQUIRED",
-        "reason": "At least one answer claim is only partially supported.",
+        "decision": "PASS",
+        "reason": "All material answer claims are supported by lifecycle-safe cited evidence.",
         "claim_count": 1,
         "claim_results": [
           {
             "claim_id": "C1",
             "claim_text": "Essential services should be kept running when usual arrangements are disrupted.",
-            "status": "PARTIALLY_SUPPORTED",
-            "reason": "Cited evidence supports part of the claim but material terms are missing.",
+            "status": "SUPPORTED",
+            "reason": "Lexical support was below threshold, but the claim passed high-risk guards and met the semantic paraphrase-rescue threshold.",
             "support_ratio": 0.5714,
             "matched_terms": [
               "arrangements",
@@ -266,7 +266,9 @@
               "usual"
             ],
             "document_id": "DOC-005",
-            "chunk_id": "DOC-005-01"
+            "chunk_id": "DOC-005-01",
+            "semantic_score": 0.7761,
+            "verification_method": "guarded_semantic_rescue"
           }
         ]
       }
@@ -286,7 +288,7 @@
             "claim_id": "C1",
             "claim_text": "Bed occupancy must trigger immediate executive escalation whenever pressure is identified.",
             "status": "PARTIALLY_SUPPORTED",
-            "reason": "Cited evidence supports part of the claim but material terms are missing.",
+            "reason": "Claim contains a material high-risk mismatch that blocks semantic rescue: unsupported_mandatory_wording, unsupported_actor",
             "support_ratio": 0.2222,
             "matched_terms": [
               "bed",
@@ -322,7 +324,7 @@
             "claim_id": "C1",
             "claim_text": "Bed occupancy above 92 percent requires immediate executive escalation.",
             "status": "PARTIALLY_SUPPORTED",
-            "reason": "Cited evidence supports part of the claim but material terms are missing.",
+            "reason": "Claim contains a material high-risk mismatch that blocks semantic rescue: unsupported_number, unsupported_mandatory_wording, unsupported_actor",
             "support_ratio": 0.25,
             "matched_terms": [
               "bed",
@@ -357,7 +359,7 @@
             "claim_id": "C1",
             "claim_text": "The available evidence does not establish that DOC-003 and DOC-011 conflict.",
             "status": "UNSUPPORTED",
-            "reason": "Cited evidence does not contain material support for the claim.",
+            "reason": "Claim contains a material high-risk mismatch that blocks semantic rescue: negation_mismatch",
             "support_ratio": 0.0,
             "matched_terms": [],
             "missing_terms": [
@@ -372,6 +374,185 @@
             ],
             "document_id": "DOC-003",
             "chunk_id": "DOC-003-01"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CIT011",
+      "category": "near_match_invented_action",
+      "expected_decision": "REVIEW_REQUIRED",
+      "actual_decision": "REVIEW_REQUIRED",
+      "correct": true,
+      "verification": {
+        "decision": "REVIEW_REQUIRED",
+        "reason": "At least one answer claim is only partially supported.",
+        "claim_count": 1,
+        "claim_results": [
+          {
+            "claim_id": "C1",
+            "claim_text": "Teams should prepare before severe weather disruption and suspend all outpatient clinics.",
+            "status": "PARTIALLY_SUPPORTED",
+            "reason": "Claim contains a material high-risk mismatch that blocks semantic rescue: unsupported_action",
+            "support_ratio": 0.4,
+            "matched_terms": [
+              "before",
+              "disruption",
+              "severe",
+              "weather"
+            ],
+            "missing_terms": [
+              "all",
+              "clinics",
+              "outpatient",
+              "prepare",
+              "suspend",
+              "teams"
+            ],
+            "document_id": "DOC-009",
+            "chunk_id": "DOC-009-01"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CIT012",
+      "category": "near_match_wrong_number",
+      "expected_decision": "REVIEW_REQUIRED",
+      "actual_decision": "REVIEW_REQUIRED",
+      "correct": true,
+      "verification": {
+        "decision": "REVIEW_REQUIRED",
+        "reason": "At least one answer claim is only partially supported.",
+        "claim_count": 1,
+        "claim_results": [
+          {
+            "claim_id": "C1",
+            "claim_text": "Hospital bed occupancy should be reviewed and 95 percent occupancy requires escalation.",
+            "status": "PARTIALLY_SUPPORTED",
+            "reason": "Claim contains a material high-risk mismatch that blocks semantic rescue: unsupported_number, unsupported_mandatory_wording",
+            "support_ratio": 0.4286,
+            "matched_terms": [
+              "bed",
+              "hospital",
+              "occupancy"
+            ],
+            "missing_terms": [
+              "escalation",
+              "percent",
+              "requires",
+              "reviewed"
+            ],
+            "document_id": "DOC-004",
+            "chunk_id": "DOC-004-01"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CIT013",
+      "category": "near_match_wrong_mandatory_wording",
+      "expected_decision": "REVIEW_REQUIRED",
+      "actual_decision": "REVIEW_REQUIRED",
+      "correct": true,
+      "verification": {
+        "decision": "REVIEW_REQUIRED",
+        "reason": "At least one answer claim is only partially supported.",
+        "claim_count": 1,
+        "claim_results": [
+          {
+            "claim_id": "C1",
+            "claim_text": "Managers must immediately redeploy all available staff whenever workforce pressure is identified.",
+            "status": "PARTIALLY_SUPPORTED",
+            "reason": "Claim contains a material high-risk mismatch that blocks semantic rescue: unsupported_mandatory_wording, unsupported_actor, unsupported_action",
+            "support_ratio": 0.3,
+            "matched_terms": [
+              "available",
+              "pressure",
+              "workforce"
+            ],
+            "missing_terms": [
+              "all",
+              "identified",
+              "immediately",
+              "managers",
+              "redeploy",
+              "staff",
+              "whenever"
+            ],
+            "document_id": "DOC-003",
+            "chunk_id": "DOC-003-01"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CIT014",
+      "category": "near_match_wrong_actor",
+      "expected_decision": "REVIEW_REQUIRED",
+      "actual_decision": "REVIEW_REQUIRED",
+      "correct": true,
+      "verification": {
+        "decision": "REVIEW_REQUIRED",
+        "reason": "At least one answer claim is only partially supported.",
+        "claim_count": 1,
+        "claim_results": [
+          {
+            "claim_id": "C1",
+            "claim_text": "The chief executive must personally manage every ambulance handover delay.",
+            "status": "PARTIALLY_SUPPORTED",
+            "reason": "Claim contains a material high-risk mismatch that blocks semantic rescue: unsupported_mandatory_wording, unsupported_actor",
+            "support_ratio": 0.25,
+            "matched_terms": [
+              "ambulance",
+              "handover"
+            ],
+            "missing_terms": [
+              "chief",
+              "delay",
+              "every",
+              "executive",
+              "manage",
+              "personally"
+            ],
+            "document_id": "DOC-008",
+            "chunk_id": "DOC-008-01"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CIT015",
+      "category": "near_match_wrong_deadline",
+      "expected_decision": "REVIEW_REQUIRED",
+      "actual_decision": "REVIEW_REQUIRED",
+      "correct": true,
+      "verification": {
+        "decision": "REVIEW_REQUIRED",
+        "reason": "At least one answer claim is only partially supported.",
+        "claim_count": 1,
+        "claim_results": [
+          {
+            "claim_id": "C1",
+            "claim_text": "Business continuity arrangements must restore all essential services within 30 minutes.",
+            "status": "PARTIALLY_SUPPORTED",
+            "reason": "Claim contains a material high-risk mismatch that blocks semantic rescue: unsupported_number, unsupported_mandatory_wording, unsupported_action",
+            "support_ratio": 0.5556,
+            "matched_terms": [
+              "arrangements",
+              "business",
+              "continuity",
+              "essential",
+              "services"
+            ],
+            "missing_terms": [
+              "all",
+              "minutes",
+              "restore",
+              "within"
+            ],
+            "document_id": "DOC-005",
+            "chunk_id": "DOC-005-01"
           }
         ]
       }
