@@ -255,6 +255,72 @@ def _evidence_text(results: list[dict]) -> str:
     return "\n".join(parts)
 
 
+def get_evidence_topic_diagnostics(
+    question: str,
+    results: list[dict],
+) -> dict:
+    """Return deterministic topic-coverage diagnostics.
+
+    This helper exposes the same topic extraction logic used by
+    assess_evidence_sufficiency() without making any sufficiency,
+    lifecycle, scope, or governance decision.
+
+    It is intended for bounded retrieval refinement so callers can
+    identify which query topics are still missing from retrieved evidence.
+    """
+
+    if not isinstance(question, str):
+        raise TypeError("question must be a string")
+
+    if not question.strip():
+        raise ValueError("question must not be blank")
+
+    if not isinstance(results, list) or any(
+        not isinstance(result, dict)
+        for result in results
+    ):
+        raise TypeError("results must be a list of dictionaries")
+
+    query_concepts = _concept_terms(question)
+
+    extract_terms = (
+        _concept_terms
+        if query_concepts
+        else _lexical_terms
+    )
+
+    specific_concepts = (
+        query_concepts - CONTEXTUAL_CONCEPTS
+    )
+
+    query_terms = (
+        specific_concepts
+        or query_concepts
+        or _lexical_terms(question)
+    )
+
+    evidence_terms: set[str] = set()
+
+    for result in results:
+        for field in ("title", "text"):
+            value = result.get(field)
+
+            if isinstance(value, str):
+                evidence_terms.update(
+                    extract_terms(value)
+                )
+
+    matched = query_terms & evidence_terms
+    missing = query_terms - evidence_terms
+
+    return {
+        "query_topics": sorted(query_terms),
+        "matched_topics": sorted(matched),
+        "missing_topics": sorted(missing),
+        "evidence_terms": sorted(evidence_terms),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Claim extraction
 # ---------------------------------------------------------------------------
