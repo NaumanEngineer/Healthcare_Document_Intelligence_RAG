@@ -10,6 +10,8 @@ from src.retrieval.keyword_search import (
 
 from src.retrieval.reranker import (
     rerank_candidates,
+    rerank_relevance,
+    RelevanceScorer,
 )
 
 from src.ingestion.chunk_metadata import (
@@ -355,6 +357,8 @@ def hybrid_search(
     keyword_min_score: float | None = None,
     min_rrf_score: float | None = None,
     rrf_k: int = DEFAULT_RRF_K,
+    *,
+    relevance_scorer: RelevanceScorer | None = None,
 ) -> list[dict]:
     """
     Perform governed hybrid retrieval.
@@ -366,7 +370,7 @@ def hybrid_search(
     -> BM25 retrieval
     -> Reciprocal Rank Fusion
     -> lifecycle re-validation
-    -> existing deterministic reranking
+    -> opt-in relevance scorer, or existing deterministic reranking
     -> optional RRF threshold
     -> final evidence
     """
@@ -416,11 +420,12 @@ def hybrid_search(
         )
     )
 
-    reranked_results = (
-        rerank_candidates(
-            eligible_results
+    if relevance_scorer is None:
+        reranked_results = rerank_candidates(eligible_results)
+    else:
+        reranked_results = rerank_relevance(
+            query, eligible_results, scorer=relevance_scorer,
         )
-    )
 
     return select_hybrid_results(
         fused_results=reranked_results,
