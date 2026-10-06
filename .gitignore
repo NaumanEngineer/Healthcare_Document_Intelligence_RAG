@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Generated benchmark artifacts
+outputs/week21_day3_relationship_benchmark.json
