@@ -927,3 +927,390 @@ def bounded_agentic_retrieval(
             ),
         },
     }
+def continue_bounded_agentic_retrieval(
+    query: str,
+    initial_results: list[dict],
+    chunks: list[dict],
+    embedded_chunks: list[dict],
+    model,
+    embedding_model: str,
+    semantic_k: int = 10,
+    keyword_k: int = 10,
+    final_k: int = 3,
+    semantic_min_similarity: float | None = None,
+    keyword_min_score: float | None = None,
+    min_rrf_score: float | None = None,
+    rrf_k: int = DEFAULT_RRF_K,
+    *,
+    query_refiner: QueryRefiner = (
+        refine_query_for_missing_topic
+    ),
+) -> dict:
+    """Continue bounded Agentic retrieval from existing Hybrid results.
+
+    This function is intended for a higher-level retrieval orchestrator
+    that has already:
+
+    1. passed the original query through the scope gate; and
+    2. performed the initial Hybrid retrieval.
+
+    It therefore does NOT repeat the initial Hybrid search.
+
+    At most one additional Hybrid retrieval is performed using a
+    deterministic refined query.
+
+    All final evidence is reassessed against the ORIGINAL question.
+    """
+
+    _validate_query_refiner(
+        query_refiner
+    )
+
+    original_scope = assess_query_scope(
+        query
+    )
+
+    if not original_scope[
+        "allowed"
+    ]:
+        return {
+            "results": [],
+            "audit": {
+                "original_query": query,
+                "original_scope": original_scope,
+                "initial_retrieval_reused": True,
+                "initial_evidence": None,
+                "rounds": [],
+                "additional_retrieval_call_count": 0,
+                "stop_reason": (
+                    "ORIGINAL_QUERY_OUT_OF_SCOPE"
+                ),
+                "final_evidence": None,
+            },
+        }
+
+    initial_results = _active_results(
+        initial_results
+    )
+
+    initial_results = _assign_final_ranks(
+        initial_results
+    )
+
+    initial_evidence = (
+        assess_evidence_sufficiency(
+            query,
+            initial_results,
+        )
+    )
+
+    initial_diagnostics = (
+        get_evidence_topic_diagnostics(
+            query,
+            initial_results,
+        )
+    )
+
+    rounds = [
+        {
+            "round": 1,
+            "query": query,
+            "missing_topics": (
+                initial_diagnostics[
+                    "missing_topics"
+                ]
+            ),
+            "retrieved_chunk_ids": [
+                _result_chunk_id(result)
+                for result in initial_results
+            ],
+            "accepted_chunk_ids": [
+                _result_chunk_id(result)
+                for result in initial_results
+            ],
+            "replaced_chunk_ids": [],
+            "assessment": initial_evidence,
+        }
+    ]
+
+    if initial_evidence[
+        "sufficient"
+    ]:
+        return {
+            "results": initial_results,
+            "audit": {
+                "original_query": query,
+                "original_scope": original_scope,
+                "initial_retrieval_reused": True,
+                "initial_evidence": (
+                    initial_evidence
+                ),
+                "rounds": rounds,
+                "additional_retrieval_call_count": 0,
+                "stop_reason": (
+                    "INITIAL_EVIDENCE_SUFFICIENT"
+                ),
+                "final_evidence": (
+                    initial_evidence
+                ),
+            },
+        }
+
+    if _has_hard_blocked_claim(
+        initial_evidence
+    ):
+        return {
+            "results": initial_results,
+            "audit": {
+                "original_query": query,
+                "original_scope": original_scope,
+                "initial_retrieval_reused": True,
+                "initial_evidence": (
+                    initial_evidence
+                ),
+                "rounds": rounds,
+                "additional_retrieval_call_count": 0,
+                "stop_reason": (
+                    "NO_RECOVERABLE_GAP"
+                ),
+                "final_evidence": (
+                    initial_evidence
+                ),
+            },
+        }
+
+    missing_topics = (
+        initial_diagnostics.get(
+            "missing_topics",
+            [],
+        )
+    )
+
+    if not missing_topics:
+        return {
+            "results": initial_results,
+            "audit": {
+                "original_query": query,
+                "original_scope": original_scope,
+                "initial_retrieval_reused": True,
+                "initial_evidence": (
+                    initial_evidence
+                ),
+                "rounds": rounds,
+                "additional_retrieval_call_count": 0,
+                "stop_reason": (
+                    "NO_RECOVERABLE_GAP"
+                ),
+                "final_evidence": (
+                    initial_evidence
+                ),
+            },
+        }
+
+    try:
+        refined_query = query_refiner(
+            query,
+            initial_diagnostics,
+        )
+    except Exception as exc:
+        raise RuntimeError(
+            "query refiner failed"
+        ) from exc
+
+    if (
+        refined_query is None
+        or not isinstance(
+            refined_query,
+            str,
+        )
+        or not refined_query.strip()
+    ):
+        return {
+            "results": initial_results,
+            "audit": {
+                "original_query": query,
+                "original_scope": original_scope,
+                "initial_retrieval_reused": True,
+                "initial_evidence": (
+                    initial_evidence
+                ),
+                "rounds": rounds,
+                "additional_retrieval_call_count": 0,
+                "stop_reason": (
+                    "REFINED_QUERY_INVALID"
+                ),
+                "final_evidence": (
+                    initial_evidence
+                ),
+            },
+        }
+
+    refined_query = " ".join(
+        refined_query.split()
+    )
+
+    if (
+        refined_query.lower()
+        == " ".join(
+            query.split()
+        ).lower()
+    ):
+        return {
+            "results": initial_results,
+            "audit": {
+                "original_query": query,
+                "original_scope": original_scope,
+                "initial_retrieval_reused": True,
+                "initial_evidence": (
+                    initial_evidence
+                ),
+                "rounds": rounds,
+                "additional_retrieval_call_count": 0,
+                "stop_reason": (
+                    "REFINED_QUERY_INVALID"
+                ),
+                "final_evidence": (
+                    initial_evidence
+                ),
+            },
+        }
+
+    refined_scope = assess_query_scope(
+        refined_query
+    )
+
+    if not refined_scope[
+        "allowed"
+    ]:
+        return {
+            "results": initial_results,
+            "audit": {
+                "original_query": query,
+                "original_scope": original_scope,
+                "initial_retrieval_reused": True,
+                "initial_evidence": (
+                    initial_evidence
+                ),
+                "rounds": rounds,
+                "additional_retrieval_call_count": 0,
+                "stop_reason": (
+                    "REFINED_QUERY_OUT_OF_SCOPE"
+                ),
+                "final_evidence": (
+                    initial_evidence
+                ),
+            },
+        }
+
+    try:
+        refined_results = hybrid_search(
+            query=refined_query,
+            chunks=chunks,
+            embedded_chunks=embedded_chunks,
+            model=model,
+            embedding_model=embedding_model,
+            semantic_k=semantic_k,
+            keyword_k=keyword_k,
+            final_k=final_k,
+            semantic_min_similarity=(
+                semantic_min_similarity
+            ),
+            keyword_min_score=(
+                keyword_min_score
+            ),
+            min_rrf_score=min_rrf_score,
+            rrf_k=rrf_k,
+            relevance_scorer=None,
+        )
+    except Exception as exc:
+        raise RuntimeError(
+            "refined retrieval failed"
+        ) from exc
+
+    refined_results = _active_results(
+        refined_results
+    )
+
+    (
+        final_results,
+        accepted_chunk_ids,
+        replaced_chunk_ids,
+        final_evidence,
+    ) = _build_improved_evidence_set(
+        original_query=query,
+        current_results=initial_results,
+        refined_results=refined_results,
+        final_k=final_k,
+    )
+
+    rounds.append(
+        {
+            "round": 2,
+            "query": refined_query,
+            "missing_topics": (
+                get_evidence_topic_diagnostics(
+                    query,
+                    final_results,
+                )[
+                    "missing_topics"
+                ]
+            ),
+            "retrieved_chunk_ids": [
+                _result_chunk_id(result)
+                for result in refined_results
+            ],
+            "accepted_chunk_ids": (
+                accepted_chunk_ids
+            ),
+            "replaced_chunk_ids": (
+                replaced_chunk_ids
+            ),
+            "assessment": final_evidence,
+        }
+    )
+
+    if final_evidence[
+        "sufficient"
+    ]:
+        stop_reason = (
+            "EVIDENCE_SUFFICIENT_AFTER_REFINEMENT"
+        )
+
+    elif accepted_chunk_ids:
+        stop_reason = (
+            "MAX_ROUNDS_REACHED"
+        )
+
+    else:
+        stop_reason = (
+            "NO_COVERAGE_IMPROVEMENT"
+        )
+
+    return {
+        "results": final_results,
+        "audit": {
+            "original_query": query,
+            "original_scope": original_scope,
+            "initial_retrieval_reused": True,
+            "initial_evidence": (
+                initial_evidence
+            ),
+            "rounds": rounds,
+            "additional_retrieval_call_count": 1,
+            "stop_reason": stop_reason,
+            "final_evidence": (
+                final_evidence
+            ),
+        },
+    }
+
+
+
+
+
+
+
+
+
+
+
