@@ -1,21 +1,36 @@
-"""Question-level Evidence Packet.
+"""Question-level Evidence Packet builder.
 
-Week 22 Day 2 + Day 3 provenance integration.
+Week 22.
 
-The Evidence Packet organizes retrieval output, structured evidence,
-provenance, evidence sufficiency, lifecycle state, governance and
-audit information into one deterministic object.
+The Evidence Packet brings together:
 
-It does not create facts, generate claims, alter retrieval decisions,
-or replace governance.
+- retrieval outcome;
+- evidence sufficiency;
+- structured evidence objects;
+- provenance;
+- provenance summary;
+- lifecycle information;
+- conflict / supersession / precedence assessment;
+- governance outcome;
+- retrieval audit information.
+
+The packet does not create new facts.
+
+It does not override retrieval, evidence sufficiency or governance.
+
+Existing governance remains authoritative.
 """
 
 from __future__ import annotations
 
 import hashlib
+from typing import Any
 
 from src.evidence.evidence_from_retrieval import (
     build_evidence_from_retrieval,
+)
+from src.evidence.evidence_precedence import (
+    assess_evidence_precedence,
 )
 from src.evidence.provenance import (
     TRACEABILITY_MISMATCH,
@@ -28,30 +43,71 @@ from src.governance.retrieval_review_integration import (
 )
 
 
-def _require_non_empty_string(
-    value,
-    field_name: str,
-) -> str:
-    """Require a non-empty string."""
+SUPPORTED_EVIDENCE_ROLES = (
+    "supporting",
+    "relationship_evidence",
+    "context",
+)
 
-    if (
-        not isinstance(value, str)
-        or not value.strip()
+
+def _require_mapping(
+    value: Any,
+    field_name: str,
+) -> dict:
+    """Require a dictionary value."""
+
+    if not isinstance(
+        value,
+        dict,
     ):
-        raise ValueError(
-            f"{field_name} must be a non-empty string"
+        raise TypeError(
+            f"{field_name} must be a dictionary"
         )
 
-    return value.strip()
+    return value
+
+
+def _require_list(
+    value: Any,
+    field_name: str,
+) -> list:
+    """Require a list value."""
+
+    if not isinstance(
+        value,
+        list,
+    ):
+        raise TypeError(
+            f"{field_name} must be a list"
+        )
+
+    return value
 
 
 def _build_packet_id(
     question: str,
 ) -> str:
-    """Build a deterministic packet identifier."""
+    """Build deterministic packet identifier."""
+
+    if not isinstance(
+        question,
+        str,
+    ):
+        raise TypeError(
+            "question must be a string"
+        )
+
+    cleaned = question.strip()
+
+    if not cleaned:
+        raise ValueError(
+            "question must not be blank"
+        )
 
     digest = hashlib.sha256(
-        question.encode("utf-8")
+        cleaned.encode(
+            "utf-8"
+        )
     ).hexdigest()[:16]
 
     return (
@@ -59,40 +115,10 @@ def _build_packet_id(
     )
 
 
-def _unique_document_ids(
-    evidence_objects: list[dict],
-) -> list[str]:
-    """Return document IDs in first-seen order."""
-
-    document_ids = []
-
-    seen = set()
-
-    for evidence in evidence_objects:
-        document_id = evidence.get(
-            "document_id"
-        )
-
-        if (
-            isinstance(document_id, str)
-            and document_id
-            and document_id not in seen
-        ):
-            seen.add(
-                document_id
-            )
-
-            document_ids.append(
-                document_id
-            )
-
-    return document_ids
-
-
-def _group_evidence_by_role(
+def _group_evidence(
     evidence_objects: list[dict],
 ) -> dict:
-    """Group evidence using the supported evidence roles."""
+    """Group evidence objects by evidence role."""
 
     grouped = {
         "supporting": [],
@@ -101,14 +127,22 @@ def _group_evidence_by_role(
     }
 
     for evidence in evidence_objects:
+        if not isinstance(
+            evidence,
+            dict,
+        ):
+            raise TypeError(
+                "each evidence object must be a dictionary"
+            )
+
         role = evidence.get(
             "evidence_role"
         )
 
-        if role not in grouped:
+        if role not in SUPPORTED_EVIDENCE_ROLES:
             raise ValueError(
-                "Unsupported evidence role in packet: "
-                f"{role!r}"
+                "Unsupported evidence role: "
+                f"{role}"
             )
 
         grouped[
@@ -120,23 +154,76 @@ def _group_evidence_by_role(
     return grouped
 
 
+def _document_ids(
+    evidence_objects: list[dict],
+) -> list[str]:
+    """Return distinct evidence document IDs in first-seen order."""
+
+    document_ids = []
+
+    seen = set()
+
+    for evidence in evidence_objects:
+        document_id = evidence.get(
+            "document_id"
+        )
+
+        if (
+            not isinstance(
+                document_id,
+                str,
+            )
+            or not document_id.strip()
+        ):
+            raise ValueError(
+                "Evidence document_id must be "
+                "a non-empty string"
+            )
+
+        document_id = (
+            document_id.strip()
+        )
+
+        if document_id not in seen:
+            seen.add(
+                document_id
+            )
+
+            document_ids.append(
+                document_id
+            )
+
+    return document_ids
+
+
 def _build_lifecycle_summary(
     evidence_objects: list[dict],
 ) -> dict:
-    """Summarize lifecycle status across packet evidence."""
+    """Summarize lifecycle states across evidence objects."""
 
-    status_counts = {}
+    status_counts: dict[
+        str,
+        int,
+    ] = {}
 
     for evidence in evidence_objects:
         status = evidence.get(
             "status"
         )
 
-        if not isinstance(
-            status,
-            str,
+        if (
+            not isinstance(
+                status,
+                str,
+            )
+            or not status.strip()
         ):
-            continue
+            raise ValueError(
+                "Evidence status must be "
+                "a non-empty string"
+            )
+
+        status = status.strip()
 
         status_counts[
             status
@@ -148,27 +235,31 @@ def _build_lifecycle_summary(
             + 1
         )
 
-    all_active = (
-        bool(evidence_objects)
-        and all(
-            evidence.get(
-                "status"
-            )
-            == "Active"
-            for evidence in evidence_objects
+    all_active = bool(
+        evidence_objects
+    ) and all(
+        evidence.get(
+            "status"
         )
+        == "Active"
+        for evidence
+        in evidence_objects
     )
 
     return {
-        "status_counts": status_counts,
-        "all_active": all_active,
+        "status_counts": (
+            status_counts
+        ),
+        "all_active": (
+            all_active
+        ),
     }
 
 
 def _build_provenance_summary(
     provenance_records: list[dict],
 ) -> dict:
-    """Summarize provenance verification across packet evidence."""
+    """Summarize provenance verification results."""
 
     status_counts = {
         TRACEABILITY_VERIFIED: 0,
@@ -186,7 +277,8 @@ def _build_provenance_summary(
             dict,
         ):
             raise TypeError(
-                "provenance record must be a dictionary"
+                "each provenance record must "
+                "be a dictionary"
             )
 
         traceability = record.get(
@@ -197,35 +289,46 @@ def _build_provenance_summary(
             traceability,
             dict,
         ):
-            raise ValueError(
-                "provenance record must contain "
-                "traceability dictionary"
+            raise TypeError(
+                "provenance traceability must "
+                "be a dictionary"
             )
 
-        status = traceability.get(
-            "traceability_status"
+        traceability_status = (
+            traceability.get(
+                "traceability_status"
+            )
         )
 
-        if status not in status_counts:
+        if (
+            traceability_status
+            not in status_counts
+        ):
             raise ValueError(
                 "Unsupported traceability status: "
-                f"{status!r}"
+                f"{traceability_status}"
             )
 
         status_counts[
-            status
+            traceability_status
         ] += 1
 
         evidence_id = record.get(
             "evidence_id"
         )
 
-        if status == TRACEABILITY_MISMATCH:
+        if (
+            traceability_status
+            == TRACEABILITY_MISMATCH
+        ):
             mismatch_evidence_ids.append(
                 evidence_id
             )
 
-        if status == TRACEABILITY_UNREGISTERED:
+        if (
+            traceability_status
+            == TRACEABILITY_UNREGISTERED
+        ):
             unregistered_evidence_ids.append(
                 evidence_id
             )
@@ -234,19 +337,28 @@ def _build_provenance_summary(
         provenance_records
     )
 
-    verified_count = status_counts[
-        TRACEABILITY_VERIFIED
-    ]
+    verified_count = (
+        status_counts[
+            TRACEABILITY_VERIFIED
+        ]
+    )
 
     all_verified = (
         record_count > 0
-        and verified_count == record_count
+        and verified_count
+        == record_count
     )
 
     return {
-        "record_count": record_count,
-        "status_counts": status_counts,
-        "all_verified": all_verified,
+        "record_count": (
+            record_count
+        ),
+        "status_counts": (
+            status_counts
+        ),
+        "all_verified": (
+            all_verified
+        ),
         "mismatch_evidence_ids": (
             mismatch_evidence_ids
         ),
@@ -256,106 +368,205 @@ def _build_provenance_summary(
     }
 
 
-def _compact_evidence_sufficiency(
-    final_evidence: dict | None,
-) -> dict | None:
-    """Return the useful final evidence-sufficiency fields."""
+def _extract_retrieval_metadata(
+    retrieval_output: dict,
+) -> dict:
+    """Extract route, stop reason and scope."""
+
+    audit = retrieval_output.get(
+        "audit",
+        {},
+    )
+
+    if audit is None:
+        audit = {}
+
+    audit = _require_mapping(
+        audit,
+        "retrieval_output.audit",
+    )
+
+    route = (
+        audit.get(
+            "selected_route"
+        )
+        or retrieval_output.get(
+            "selected_route"
+        )
+    )
+
+    stop_reason = (
+        audit.get(
+            "stop_reason"
+        )
+        or retrieval_output.get(
+            "stop_reason"
+        )
+    )
+
+    scope = (
+        retrieval_output.get(
+            "scope"
+        )
+        or audit.get(
+            "scope"
+        )
+        or {}
+    )
+
+    if not isinstance(
+        scope,
+        dict,
+    ):
+        raise TypeError(
+            "retrieval scope must be a dictionary"
+        )
+
+    return {
+        "route": route,
+        "stop_reason": (
+            stop_reason
+        ),
+        "scope": scope,
+    }
+
+
+def _extract_final_evidence(
+    retrieval_output: dict,
+) -> dict:
+    """Return the final evidence-sufficiency assessment.
+
+    Out-of-scope retrieval may legitimately have no final evidence.
+    In that case an empty dictionary is returned.
+    """
+
+    audit = retrieval_output.get(
+        "audit",
+        {},
+    )
+
+    if audit is None:
+        audit = {}
+
+    audit = _require_mapping(
+        audit,
+        "retrieval_output.audit",
+    )
+
+    final_evidence = audit.get(
+        "final_evidence"
+    )
+
+    if final_evidence is None:
+        final_evidence = retrieval_output.get(
+            "final_evidence"
+        )
+
+    if final_evidence is None:
+        return {}
 
     if not isinstance(
         final_evidence,
         dict,
     ):
-        return None
-
-    fields = (
-        "sufficient",
-        "decision",
-        "reason",
-        "matched_query_terms",
-        "evidence_terms",
-        "result_count",
-        "topic_sufficient",
-        "claim_sufficient",
-        "claim_requirements",
-        "unsupported_claims",
-    )
-
-    return {
-        field: final_evidence.get(
-            field
+        raise TypeError(
+            "final_evidence must be a dictionary"
         )
-        for field in fields
-    }
+
+    return final_evidence
 
 
-def _build_missing_evidence(
-    audit: dict,
-    final_evidence: dict | None,
+def _extract_missing_evidence(
+    retrieval_output: dict,
+    final_evidence: dict,
 ) -> dict:
-    """Separate initial diagnosed gaps from final unresolved gaps.
+    """Separate initial diagnosis from final unresolved evidence gaps."""
 
-    routing_decision.missing_topics describes why Architecture v2
-    considered an enhancement route after the initial retrieval.
-
-    Those topics must not automatically be reported as still missing
-    after successful bounded recovery.
-
-    Final unresolved claim gaps remain authoritative from the final
-    evidence-sufficiency assessment.
-    """
-
-    initial_missing_topics = []
-
-    routing_decision = audit.get(
-        "routing_decision"
+    audit = retrieval_output.get(
+        "audit",
+        {},
     )
 
-    if isinstance(
+    if audit is None:
+        audit = {}
+
+    audit = _require_mapping(
+        audit,
+        "retrieval_output.audit",
+    )
+
+    routing_decision = (
+        audit.get(
+            "routing_decision"
+        )
+        or retrieval_output.get(
+            "routing_decision"
+        )
+        or {}
+    )
+
+    if not isinstance(
         routing_decision,
         dict,
     ):
-        value = routing_decision.get(
+        raise TypeError(
+            "routing_decision must be a dictionary"
+        )
+
+    initial_missing_topics = (
+        routing_decision.get(
             "missing_topics",
             [],
         )
+    )
 
-        if isinstance(
-            value,
-            list,
-        ):
-            initial_missing_topics = value
-
-    final_unsupported_claims = []
-
-    final_sufficient = False
-
-    if isinstance(
-        final_evidence,
-        dict,
+    if not isinstance(
+        initial_missing_topics,
+        list,
     ):
-        final_sufficient = (
-            final_evidence.get(
-                "sufficient"
-            )
-            is True
+        raise TypeError(
+            "routing_decision.missing_topics "
+            "must be a list"
         )
 
-        value = final_evidence.get(
+    if (
+        final_evidence.get(
+            "sufficient"
+        )
+        is True
+    ):
+        final_missing_topics = []
+
+    else:
+        final_missing_topics = (
+            final_evidence.get(
+                "missing_topics",
+                initial_missing_topics,
+            )
+        )
+
+        if not isinstance(
+            final_missing_topics,
+            list,
+        ):
+            raise TypeError(
+                "final missing_topics must be a list"
+            )
+
+    unsupported_claims = (
+        final_evidence.get(
             "unsupported_claims",
             [],
         )
-
-        if isinstance(
-            value,
-            list,
-        ):
-            final_unsupported_claims = value
-
-    final_missing_topics = (
-        []
-        if final_sufficient
-        else initial_missing_topics
     )
+
+    if not isinstance(
+        unsupported_claims,
+        list,
+    ):
+        raise TypeError(
+            "unsupported_claims must be a list"
+        )
 
     return {
         "initial_missing_topics": (
@@ -365,31 +576,71 @@ def _build_missing_evidence(
             final_missing_topics
         ),
         "unsupported_claims": (
-            final_unsupported_claims
+            unsupported_claims
         ),
     }
 
 
-def _compact_governance(
-    governance: dict,
+def _build_audit_summary(
+    retrieval_output: dict,
+    retrieval_metadata: dict,
 ) -> dict:
-    """Return the packet-level governance fields."""
+    """Build compact retrieval audit summary."""
 
-    fields = (
-        "decision",
-        "reason",
-        "requires_human_review",
-        "may_generate_answer",
-        "document_ids",
-        "retrieval_route",
-        "retrieval_stop_reason",
+    audit = retrieval_output.get(
+        "audit",
+        {},
     )
 
-    return {
-        field: governance.get(
-            field
+    if audit is None:
+        audit = {}
+
+    audit = _require_mapping(
+        audit,
+        "retrieval_output.audit",
+    )
+
+    initial_retrieval_call_count = (
+        audit.get(
+            "initial_retrieval_call_count",
+            1,
         )
-        for field in fields
+    )
+
+    total_hybrid_retrieval_calls = (
+        audit.get(
+            "total_hybrid_retrieval_calls"
+        )
+    )
+
+    if (
+        total_hybrid_retrieval_calls
+        is None
+    ):
+        total_hybrid_retrieval_calls = (
+            audit.get(
+                "hybrid_retrieval_call_count",
+                initial_retrieval_call_count,
+            )
+        )
+
+    return {
+        "initial_retrieval_call_count": (
+            initial_retrieval_call_count
+        ),
+        "total_hybrid_retrieval_calls": (
+            total_hybrid_retrieval_calls
+        ),
+        "selected_route": (
+            retrieval_metadata[
+                "route"
+            ]
+        ),
+        "stop_reason": (
+            retrieval_metadata[
+                "stop_reason"
+            ]
+        ),
     }
 
 
@@ -397,114 +648,101 @@ def build_evidence_packet(
     question: str,
     retrieval_output: dict,
 ) -> dict:
-    """Build one deterministic question-level Evidence Packet."""
+    """Build one structured question-level Evidence Packet.
 
-    question = _require_non_empty_string(
-        question,
-        "question",
-    )
+    Safety sequence:
+
+    Question
+    -> Scope Gate
+    -> Evidence Sufficiency
+    -> Structured Evidence
+    -> Provenance
+    -> Precedence Assessment
+    -> Governance
+
+    The packet does not grant permission to answer.
+    """
 
     if not isinstance(
-        retrieval_output,
-        dict,
+        question,
+        str,
     ):
         raise TypeError(
-            "retrieval_output must be a dictionary"
+            "question must be a string"
         )
 
-    audit = retrieval_output.get(
-        "audit"
-    )
+    question = question.strip()
 
-    if not isinstance(
-        audit,
-        dict,
-    ):
+    if not question:
         raise ValueError(
-            "retrieval_output must contain audit dictionary"
+            "question must not be blank"
         )
 
-    results = retrieval_output.get(
-        "results"
-    )
-
-    if not isinstance(
-        results,
-        list,
-    ):
-        raise ValueError(
-            "retrieval_output must contain results list"
-        )
-
-    scope = audit.get(
-        "scope"
-    )
-
-    if not isinstance(
-        scope,
-        dict,
-    ):
-        raise ValueError(
-            "retrieval audit must contain scope dictionary"
-        )
-
-    selected_route = _require_non_empty_string(
-        audit.get(
-            "selected_route"
-        ),
-        "selected_route",
-    )
-
-    stop_reason = audit.get(
-        "stop_reason"
-    )
-
-    if stop_reason is not None:
-        stop_reason = _require_non_empty_string(
-            stop_reason,
-            "stop_reason",
-        )
-
-    final_evidence = audit.get(
-        "final_evidence"
-    )
-
-    governance = (
-        decide_retrieval_governance_outcome(
-            question,
+    retrieval_output = (
+        _require_mapping(
             retrieval_output,
+            "retrieval_output",
+        )
+    )
+
+    packet_id = (
+        _build_packet_id(
+            question
+        )
+    )
+
+    retrieval_metadata = (
+        _extract_retrieval_metadata(
+            retrieval_output
+        )
+    )
+
+    final_evidence = (
+        _extract_final_evidence(
+            retrieval_output
         )
     )
 
     scope_allowed = (
-        scope.get(
+        retrieval_metadata[
+            "scope"
+        ].get(
             "allowed"
         )
-        is True
     )
 
-    final_sufficient = (
-        isinstance(
-            final_evidence,
-            dict,
-        )
+    if (
+        scope_allowed is True
         and final_evidence.get(
             "sufficient"
         )
         is True
-    )
-
-    if (
-        scope_allowed
-        and final_sufficient
     ):
         evidence_objects = (
             build_evidence_from_retrieval(
                 retrieval_output
             )
         )
+
     else:
         evidence_objects = []
+
+    _require_list(
+        evidence_objects,
+        "evidence_objects",
+    )
+
+    grouped_evidence = (
+        _group_evidence(
+            evidence_objects
+        )
+    )
+
+    document_ids = (
+        _document_ids(
+            evidence_objects
+        )
+    )
 
     provenance_records = (
         build_provenance_records(
@@ -518,68 +756,76 @@ def build_evidence_packet(
         )
     )
 
-    document_ids = (
-        _unique_document_ids(
+    lifecycle_summary = (
+        _build_lifecycle_summary(
             evidence_objects
         )
     )
 
+    precedence_assessment = (
+        assess_evidence_precedence(
+            evidence_objects
+        )
+    )
+
+    governance = (
+        decide_retrieval_governance_outcome(
+            question,
+            retrieval_output,
+        )
+    )
+
+    missing_evidence = (
+        _extract_missing_evidence(
+            retrieval_output,
+            final_evidence,
+        )
+    )
+
+    audit_summary = (
+        _build_audit_summary(
+            retrieval_output,
+            retrieval_metadata,
+        )
+    )
+
     return {
-        "packet_id": _build_packet_id(
-            question
-        ),
+        "packet_id": packet_id,
         "question": question,
-        "retrieval": {
-            "route": selected_route,
-            "stop_reason": stop_reason,
-            "scope": scope,
-        },
+        "retrieval": (
+            retrieval_metadata
+        ),
         "evidence_sufficiency": (
-            _compact_evidence_sufficiency(
-                final_evidence
-            )
+            final_evidence
         ),
         "evidence": (
-            _group_evidence_by_role(
-                evidence_objects
-            )
+            grouped_evidence
         ),
         "evidence_count": len(
             evidence_objects
         ),
-        "document_ids": document_ids,
-        "provenance": provenance_records,
+        "document_ids": (
+            document_ids
+        ),
+        "provenance": (
+            provenance_records
+        ),
         "provenance_summary": (
             provenance_summary
         ),
+        "precedence_assessment": (
+            precedence_assessment
+        ),
         "missing_evidence": (
-            _build_missing_evidence(
-                audit,
-                final_evidence,
-            )
+            missing_evidence
         ),
         "lifecycle_summary": (
-            _build_lifecycle_summary(
-                evidence_objects
-            )
+            lifecycle_summary
         ),
         "governance": (
-            _compact_governance(
-                governance
-            )
+            governance
         ),
-        "audit_summary": {
-            "initial_retrieval_call_count": (
-                audit.get(
-                    "initial_retrieval_call_count"
-                )
-            ),
-            "total_hybrid_retrieval_calls": (
-                audit.get(
-                    "total_hybrid_retrieval_calls"
-                )
-            ),
-            "selected_route": selected_route,
-            "stop_reason": stop_reason,
-        },
+        "audit_summary": (
+            audit_summary
+        ),
     }
