@@ -442,17 +442,16 @@ The benchmark result was:
 
 
 
-> 47 evidence-bearing cases  
+> 47 evidence-bearing cases
 
-> 47 fully provenance-verified cases  
+> 47 fully provenance-verified cases
 
-> 47 all-active evidence cases  
+> 47 all-active evidence cases
 
-> 0 unsafe manager-ready outcomes  
+> 0 unsafe manager-ready outcomes
 
 > 604 regression tests passed
 
 
 
 This provides the evidence base for the next stage of the project: broader portfolio packaging and future integration into the NHS Sovereign Operational Intelligence \& Evidence Copilot.
-
