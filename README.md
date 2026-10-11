@@ -2,13 +2,13 @@
 
 ## Project Overview
 
-This project is a governed operational-policy intelligence assistant designed for NHS-style environments.
+Healthcare Document Intelligence RAG is a governed operational evidence assistant designed for NHS-style environments.
 
-Its purpose is to help staff find the right current operational guidance quickly, trace every answer back to source evidence, and avoid unsupported responses when the available evidence is weak or out of scope.
+Its purpose is to help operational staff find current guidance, understand which evidence supports a response, and avoid unsupported or unsafe automation when the available evidence is weak, conflicting, superseded, out of scope, or requires human review.
 
-The system is not designed as a generic chatbot.
+The project is not designed as a generic chatbot.
 
-It is designed as a controlled evidence assistant for operational guidance.
+It is designed as a controlled evidence workflow for operational guidance.
 
 ---
 
@@ -20,42 +20,53 @@ Operational teams may need to work across multiple documents such as:
 - workforce procedures
 - bed-capacity guidance
 - winter-pressure plans
+- ambulance handover guidance
+- severe-weather plans
 - business-continuity procedures
-- governance standards
+- operational governance standards
 
 Common risks include:
 
 - time lost searching multiple documents
 - staff finding outdated guidance
 - inconsistent interpretation
-- weak traceability
-- difficulty proving which source supported an answer
+- weak provenance
+- uncertainty about which source supported a conclusion
+- conflicting or superseded documents being combined incorrectly
 - AI systems generating plausible but unsupported responses
+- automation continuing when human review is more appropriate
 
-This project addresses those risks through governed retrieval and grounded answer generation.
+This project addresses those risks through governed retrieval, structured evidence, provenance verification, precedence assessment and explicit human-review controls.
 
 ---
 
-## What the System Does
+## Current System Capability
 
 The current prototype can:
 
-- ingest and clean operational documents
-- preserve source and lifecycle metadata
+- ingest synthetic operational documents
+- preserve lifecycle and source metadata
 - split documents into traceable evidence chunks
-- create semantic embeddings
-- retrieve evidence based on meaning
-- exclude Superseded, Draft and Archived guidance
-- detect stale embeddings
+- generate semantic embeddings
+- perform semantic, keyword and hybrid retrieval
+- enforce query-scope controls
+- exclude inappropriate lifecycle states from normal evidence use
+- detect stale or inconsistent evidence metadata
 - rank and rerank candidate evidence
-- reject weak evidence using a configurable threshold
-- format approved evidence for generation
-- prevent normal generation when no reliable evidence exists
-- generate answers only from supplied evidence
-- preserve source, version, page and chunk provenance
-- validate citation identifiers
-- perform baseline claim-support checks
-- record retrieval and answer evaluation metrics
+- stop when evidence is insufficient
+- use bounded retrieval refinement where appropriate
+- create structured Evidence Objects
+- build question-level Evidence Packets
+- verify evidence provenance against a canonical document register
+- summarise lifecycle state
+- assess conflict, supersession and precedence
+- distinguish safe evidence combination from answer authority
+- preserve existing governance decisions
+- route cases to `AUTO_ANSWER`, `REVIEW_REQUIRED` or `ABSTAIN`
+- produce deterministic manager-facing evidence briefs
+- prevent manager-ready status when governance or evidence conditions are unsafe
+- record benchmark and audit outputs
+- run regression tests across the full project
 
 ---
 
@@ -63,20 +74,22 @@ The current prototype can:
 
 A manager asks:
 
-> What should operational leadership do during escalation?
+> How should severe weather pressure and ambulance handover disruption be considered together?
 
-The system:
+The system can:
 
-1. searches the approved operational-document corpus
-2. identifies the most relevant current policy evidence
-3. excludes outdated versions
-4. checks whether the evidence is strong enough
-5. supplies only approved evidence to the language model
-6. generates a concise explanation
-7. shows the supporting source, version, page and chunk
-8. validates that the model did not invent a source
+1. check whether the question is within the approved operational domain
+2. retrieve relevant current evidence
+3. assess whether the available evidence is sufficient
+4. convert retrieved chunks into structured Evidence Objects
+5. verify where each piece of evidence came from
+6. check lifecycle status
+7. assess whether the evidence can safely be combined
+8. apply governance rules
+9. create a manager-readable evidence brief
+10. require human review when automation is not appropriate
 
-If no reliable evidence exists, the system abstains instead of guessing.
+If the evidence is weak, out of scope or unsuitable for automatic use, the system abstains or routes the case for review rather than guessing.
 
 ---
 
@@ -84,143 +97,39 @@ If no reliable evidence exists, the system abstains instead of guessing.
 
 ```mermaid
 flowchart TD
-    A[Operational Documents] --> B[PDF Ingestion]
-    B --> C[Cleaning]
-    C --> D[Metadata Enrichment]
-    D --> E[Chunking]
-    E --> F[Chunk QA]
+    A[Operational Documents] --> B[Document Ingestion]
+    B --> C[Cleaning and Metadata]
+    C --> D[Chunking]
+    D --> E[Embeddings and Retrieval]
 
-    F --> G[Embeddings]
-    G --> H[Parquet Knowledge Layer]
-    H --> I[DuckDB QA and Analytics]
+    E --> F[Scope Gate]
+    F --> G[Architecture v2 Retrieval Orchestrator]
 
-    G --> J[Lifecycle Filtering]
-    J --> K[Semantic Retrieval]
-    K --> L[Candidate Ranking]
-    L --> M[Deterministic Reranking]
-    M --> N[Evidence Threshold]
-    N --> O[Final Evidence Set]
+    G --> H1[Return Initial Evidence]
+    G --> H2[Hybrid Rescue]
+    G --> H3[Bounded Agentic Retrieval]
+    G --> H4[Stop Insufficient]
+    G --> H5[Stop Out of Scope]
 
-    O --> P[Evidence Formatter]
-    P --> Q[Grounded Prompt]
+    H1 --> I[Evidence Sufficiency]
+    H2 --> I
+    H3 --> I
 
-    Q --> R{Sufficient Evidence?}
+    I --> J[Structured Evidence Objects]
+    J --> K[Evidence Packet]
+    K --> L[Provenance Verification]
+    L --> M[Lifecycle Assessment]
+    M --> N[Conflict / Supersession / Precedence]
+    N --> O[Governance]
 
-    R -->|No| S[Controlled Abstention]
-    R -->|Yes| T[LLM Interface]
+    O --> P1[AUTO_ANSWER]
+    O --> P2[REVIEW_REQUIRED]
+    O --> P3[ABSTAIN]
 
-    T --> U[Generated Answer]
-    U --> V[Citation Validation]
-    V --> W[Faithfulness Screening]
-    W --> X[Human Review]
-```
+    P1 --> Q[Manager Evidence Brief]
+    P2 --> Q
+    P3 --> Q
 
-## Portfolio Evidence
-
-This repository demonstrates:
-
-- healthcare-focused data engineering
-- metadata and provenance design
-- semantic retrieval
-- RAG architecture
-- lifecycle-aware governance
-- evaluation engineering
-- hallucination-risk controls
-- prompt-injection awareness
-- SQL-style analytical thinking with DuckDB
-- test-driven Python development
-- enterprise migration thinking
-- NHS management communication
-
-## Evaluation Status
-
-The evaluation framework is implemented.
-
-Performance metrics should only be reported from executed benchmark runs.
-
-Placeholder or illustrative figures are not presented as measured project results.
-
-
-## Week 18 — Governed Retrieval & Human Review
-
-Week 18 upgraded the project from a retrieval prototype into a more controlled operational evidence assistant.
-
-### What was added
-
-- Semantic retrieval benchmark
-- BM25 keyword retrieval
-- Hybrid retrieval
-- RRF-only comparison
-- Active-only lifecycle enforcement
-- Deterministic query-scope gate
-- Abstention controls
-- Human-review routing
-- Confidence and score-gap rules
-- Structured audit records
-
-### Benchmark results
-
-| Method | Top-1 | Top-k | Abstention | Active-only |
-|---|---:|---:|---:|---:|
-| Semantic | 70% | 90% | 100% | 100% |
-| BM25 | 20% | 40% | 100% | 100% |
-| Hybrid | 70% | 90% | 100% | 100% |
-| RRF-only | 40% | 50% | 100% | 100% |
-
-A key finding was that more complex retrieval did not automatically improve performance. Semantic retrieval remained the strongest baseline, while the existing reranking stage added value over RRF-only fusion.
-
-### Safety finding
-
-Initially, unsupported questions could still retrieve semantically related operational documents.
-
-Examples included:
-
-- medication prescribing;
-- antibiotic dosing;
-- current external leadership questions.
-
-A deterministic scope gate improved abstention success from:
-
-`0% → 100%`
-
-without reducing semantic retrieval performance.
-
-### Human-review outcomes
-
-The system now routes queries to:
-
-- `AUTO_ANSWER`
-- `REVIEW_REQUIRED`
-- `ABSTAIN`
-
-Across the 14-case benchmark:
-
-| Outcome | Cases |
-|---|---:|
-| AUTO_ANSWER | 3 |
-| REVIEW_REQUIRED | 8 |
-| ABSTAIN | 3 |
-
-The design deliberately prioritises traceability and human accountability over unsupported automation.
-
-### Current governed flow
-
-```text
-Question
-↓
-Scope Gate
-↓
-Retrieval
-↓
-Lifecycle Filtering
-↓
-Reranking
-↓
-Evidence Assessment
-↓
-AUTO_ANSWER / REVIEW_REQUIRED / ABSTAIN
-↓
-Grounded Answer or Human Review
-↓
-Audit Record
-```
+    Q --> R1[BRIEF_READY]
+    Q --> R2[BRIEF_REVIEW_REQUIRED]
+    Q --> R3[BRIEF_UNAVAILABLE]
