@@ -13,6 +13,11 @@ from src.preprocessing.build_chunks import (
     build_document_chunks,
 )
 
+from src.ingestion.document_metadata import (
+    DOCUMENT_REGISTER,
+    create_ingestion_batch_id,
+)
+
 from src.retrieval.embeddings import (
     embed_chunks,
     get_model_identifier,
@@ -261,6 +266,12 @@ def build_txt_document_chunks(
 ) -> list[dict]:
     """
     Build canonical chunk dictionaries from one synthetic TXT file.
+
+    Registered TXT documents use canonical document metadata when the
+    actual TXT filename matches the canonical source location.
+
+    This prevents metadata drift while preserving intentionally
+    different lifecycle stress files such as superseded DOC-001.
     """
 
     text = file_path.read_text(
@@ -273,7 +284,7 @@ def build_txt_document_chunks(
         )
     )
 
-    title = (
+    parsed_title = (
         parse_header_value(
             text=text,
             label="Title",
@@ -286,7 +297,7 @@ def build_txt_document_chunks(
         )
     )
 
-    version = (
+    parsed_version = (
         parse_header_value(
             text=text,
             label="Version",
@@ -294,7 +305,7 @@ def build_txt_document_chunks(
         )
     )
 
-    effective_date = (
+    parsed_effective_date = (
         parse_header_value(
             text=text,
             label="Effective Date",
@@ -302,12 +313,84 @@ def build_txt_document_chunks(
         )
     )
 
-    status = (
+    parsed_status = (
         parse_header_value(
             text=text,
             label="Status",
             default="Active",
         )
+    )
+
+    canonical_metadata = (
+        DOCUMENT_REGISTER.get(
+            document_id
+        )
+    )
+
+    use_canonical_metadata = False
+
+    if canonical_metadata is not None:
+        canonical_source_name = Path(
+            canonical_metadata.source_location
+        ).name
+
+        use_canonical_metadata = (
+            canonical_source_name.lower()
+            == file_path.name.lower()
+        )
+
+    if use_canonical_metadata:
+        title = (
+            canonical_metadata.title
+        )
+
+        document_type = (
+            canonical_metadata.document_type
+        )
+
+        source_type = (
+            canonical_metadata.source_type
+        )
+
+        source_location = (
+            canonical_metadata.source_location
+        )
+
+        version = (
+            canonical_metadata.version
+        )
+
+        effective_date = (
+            canonical_metadata.effective_date
+        )
+
+        status = (
+            canonical_metadata.status
+        )
+
+    else:
+        title = parsed_title
+
+        document_type = (
+            "Synthetic Operational Document"
+        )
+
+        source_type = "Synthetic"
+
+        source_location = str(
+            file_path
+        )
+
+        version = parsed_version
+
+        effective_date = (
+            parsed_effective_date
+        )
+
+        status = parsed_status
+
+    ingestion_batch_id = (
+        create_ingestion_batch_id()
     )
 
     pieces = (
@@ -344,14 +427,18 @@ def build_txt_document_chunks(
             "document_id": document_id,
             "title": title,
             "document_type": (
-                "Synthetic Operational Document"
+                document_type
             ),
-            "source_type": "Synthetic",
-            "source_location": str(
-                file_path
+            "source_type": (
+                source_type
+            ),
+            "source_location": (
+                source_location
             ),
             "version": version,
-            "effective_date": effective_date,
+            "effective_date": (
+                effective_date
+            ),
             "status": status,
             "source_file": (
                 file_path.name
@@ -359,6 +446,12 @@ def build_txt_document_chunks(
             "page": 1,
             "chunk_number": index,
             "text": piece,
+            "extraction_status": (
+                "success"
+            ),
+            "ingestion_batch_id": (
+                ingestion_batch_id
+            ),
         }
 
         chunks.append(
