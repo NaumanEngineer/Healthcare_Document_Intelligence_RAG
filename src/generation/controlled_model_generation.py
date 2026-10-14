@@ -47,6 +47,27 @@ ALLOWED_SECTIONS = {
 }
 
 
+ABSTENTION_PROHIBITED_PHRASES = {
+    "you should",
+    "you must",
+    "we should",
+    "we must",
+    "immediately implement",
+    "implement a",
+    "implement the",
+    "proceed using",
+    "proceed with",
+    "take action",
+    "take the following action",
+    "recommended action",
+    "recommend that",
+    "my recommendation",
+    "operational recommendation",
+    "should immediately",
+    "must immediately",
+}
+
+
 def _require_mapping(
     value: Any,
     name: str,
@@ -108,6 +129,58 @@ def _require_non_empty_string(
         )
 
     return value.strip()
+
+
+def _validate_abstention_sections(
+    sections: dict,
+) -> None:
+    """Ensure abstention text does not smuggle in substantive advice."""
+
+    required_sections = {
+        "unable_to_answer_safely",
+        "reason",
+        "missing_information",
+        "what_is_needed_to_continue",
+    }
+
+    missing_sections = (
+        required_sections
+        - set(
+            sections.keys()
+        )
+    )
+
+    if missing_sections:
+        raise ValueError(
+            "ABSTAIN output is missing required sections: "
+            + ", ".join(
+                sorted(
+                    missing_sections
+                )
+            )
+        )
+
+    for section_name in required_sections:
+        section_text = _require_non_empty_string(
+            sections.get(
+                section_name
+            ),
+            f"ABSTAIN section {section_name}",
+        )
+
+        normalized_text = (
+            " ".join(
+                section_text.lower().split()
+            )
+        )
+
+        for phrase in ABSTENTION_PROHIBITED_PHRASES:
+            if phrase in normalized_text:
+                raise ValueError(
+                    "ABSTAIN output contains prohibited "
+                    "substantive or directive content: "
+                    f"{phrase}"
+                )
 
 
 def build_model_generation_input(
@@ -479,6 +552,10 @@ def validate_model_generation_output(
             raise ValueError(
                 "ABSTAIN output contains substantive answer content."
             )
+
+        _validate_abstention_sections(
+            sections
+        )
 
     if governance_decision == REVIEW_REQUIRED:
         prohibited_review_sections = {
