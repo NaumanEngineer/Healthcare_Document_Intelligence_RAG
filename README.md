@@ -133,3 +133,82 @@ flowchart TD
     Q --> R1[BRIEF_READY]
     Q --> R2[BRIEF_REVIEW_REQUIRED]
     Q --> R3[BRIEF_UNAVAILABLE]
+
+## Week 23 ? Grounded Communication v2
+
+Week 23 extended the governed evidence workflow into a controlled communication layer.
+
+The end-to-end architecture is now:
+
+Retrieval
+-> Evidence Packet
+-> Answer Contract
+-> Answer Context
+-> Grounded Response
+-> Claim-to-Citation Linking
+-> Review / Abstention UX
+
+### Frozen 75-Case Benchmark
+
+The complete Week 23 communication stack was evaluated across the frozen benchmark.
+
+Results:
+
+- 75 total cases
+- 14 AUTO_ANSWER
+- 33 REVIEW_REQUIRED
+- 28 ABSTAIN
+- 141 supported claims
+- 0 unsupported claims
+- 141 citations used
+- 3.0 average citations per AUTO_ANSWER
+- 3.0 average supported claims per AUTO_ANSWER
+- 33 manager review UX cases
+- 28 safe abstention UX cases
+
+### Safety Results
+
+The benchmark produced:
+
+- 0 governance overrides
+- 0 expected-abstention auto-answers
+- 0 review cases presented as authoritative
+- 0 abstention evidence leaks
+- 0 unsupported material claims
+- 0 unknown citations
+- 0 lifecycle-unsafe automated citations
+- 0 unsafe cases overall
+
+**Week 23 benchmark result: SAFETY PASS**
+
+Full regression:
+
+**690 tests passed**
+
+### Why This Matters
+
+The project is no longer simply a healthcare document retrieval system.
+
+It now demonstrates:
+
+- governed answer permissions
+- evidence-grounded communication
+- claim-level citation traceability
+- human-review preservation
+- safe abstention
+- lifecycle-aware evidence use
+- auditable manager-facing outputs
+
+The current progression is:
+
+**Smart Retrieval -> Trusted Evidence -> Trusted Communication**
+
+### Current Limitation
+
+The grounded-generation layer is currently deterministic.
+
+This is intentional and provides a controlled safety baseline before introducing live LLM-assisted generation.
+
+The current zero-unsupported-claim result therefore applies to the deterministic benchmarked communication layer and should not be interpreted as proof that an unrestricted LLM would always produce zero unsupported claims.
+
+Future LLM-assisted generation must pass the same governance, citation and safety benchmark before promotion.
