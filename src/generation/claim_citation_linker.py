@@ -1,4 +1,24 @@
-"""Week 23 Day 4 — deterministic claim-to-citation linking."""
+"""Week 25 Day 3 — deterministic claim-to-citation linking.
+
+This module preserves the existing Week 23 claim-linking contract while adding
+governed support for material claims that require more than one approved
+citation.
+
+Supported evidence-item citation forms:
+
+Legacy single citation:
+    "citation_id": "E1"
+
+Multi-citation form:
+    "citation_ids": ["E1", "E2"]
+
+A response may therefore preserve all evidence required by relational claims
+such as conflict, replacement, precedence, or other cross-source conclusions.
+
+The linker does not decide whether the evidence semantically proves the claim.
+That remains the responsibility of downstream citation verification and
+faithfulness assurance.
+"""
 
 from __future__ import annotations
 
@@ -14,6 +34,8 @@ def _require_mapping(
     value: Any,
     field_name: str,
 ) -> dict:
+    """Require a dictionary."""
+
     if not isinstance(
         value,
         dict,
@@ -29,6 +51,8 @@ def _require_list(
     value: Any,
     field_name: str,
 ) -> list:
+    """Require a list."""
+
     if not isinstance(
         value,
         list,
@@ -44,6 +68,8 @@ def _require_non_empty_string(
     value: Any,
     field_name: str,
 ) -> str:
+    """Require a non-empty string."""
+
     if not isinstance(
         value,
         str,
@@ -65,19 +91,29 @@ def _require_non_empty_string(
 def _validate_shared_state(
     grounded_response: dict,
     answer_context: dict,
-) -> tuple[str, str, str]:
-    response_packet_id = _require_non_empty_string(
-        grounded_response.get(
-            "packet_id"
-        ),
-        "grounded_response.packet_id",
+) -> tuple[
+    str,
+    str,
+    str,
+]:
+    """Validate packet, governance and response-type identity."""
+
+    response_packet_id = (
+        _require_non_empty_string(
+            grounded_response.get(
+                "packet_id"
+            ),
+            "grounded_response.packet_id",
+        )
     )
 
-    context_packet_id = _require_non_empty_string(
-        answer_context.get(
-            "packet_id"
-        ),
-        "answer_context.packet_id",
+    context_packet_id = (
+        _require_non_empty_string(
+            answer_context.get(
+                "packet_id"
+            ),
+            "answer_context.packet_id",
+        )
     )
 
     if (
@@ -89,18 +125,22 @@ def _validate_shared_state(
             "packet IDs do not match"
         )
 
-    response_governance = _require_non_empty_string(
-        grounded_response.get(
-            "governance_decision"
-        ),
-        "grounded_response.governance_decision",
+    response_governance = (
+        _require_non_empty_string(
+            grounded_response.get(
+                "governance_decision"
+            ),
+            "grounded_response.governance_decision",
+        )
     )
 
-    context_governance = _require_non_empty_string(
-        answer_context.get(
-            "governance_decision"
-        ),
-        "answer_context.governance_decision",
+    context_governance = (
+        _require_non_empty_string(
+            answer_context.get(
+                "governance_decision"
+            ),
+            "answer_context.governance_decision",
+        )
     )
 
     if (
@@ -112,18 +152,22 @@ def _validate_shared_state(
             "governance decisions do not match"
         )
 
-    response_type = _require_non_empty_string(
-        grounded_response.get(
-            "response_type"
-        ),
-        "grounded_response.response_type",
+    response_type = (
+        _require_non_empty_string(
+            grounded_response.get(
+                "response_type"
+            ),
+            "grounded_response.response_type",
+        )
     )
 
-    context_response_type = _require_non_empty_string(
-        answer_context.get(
-            "response_type"
-        ),
-        "answer_context.response_type",
+    context_response_type = (
+        _require_non_empty_string(
+            answer_context.get(
+                "response_type"
+            ),
+            "answer_context.response_type",
+        )
     )
 
     if (
@@ -145,6 +189,8 @@ def _validate_shared_state(
 def _build_citation_lookup(
     answer_context: dict,
 ) -> dict[str, dict]:
+    """Build approved citation lookup."""
+
     citation_index = _require_list(
         answer_context.get(
             "citation_index"
@@ -160,11 +206,13 @@ def _build_citation_lookup(
             "citation item",
         )
 
-        citation_id = _require_non_empty_string(
-            citation.get(
-                "citation_id"
-            ),
-            "citation.citation_id",
+        citation_id = (
+            _require_non_empty_string(
+                citation.get(
+                    "citation_id"
+                ),
+                "citation.citation_id",
+            )
         )
 
         if citation_id in lookup:
@@ -180,10 +228,160 @@ def _build_citation_lookup(
     return lookup
 
 
+def _normalise_citation_id_list(
+    citation_ids: list,
+    citation_lookup: dict[str, dict],
+    *,
+    field_name: str,
+) -> list[str]:
+    """Validate, de-duplicate and preserve citation order."""
+
+    validated = []
+
+    seen = set()
+
+    for citation_id in citation_ids:
+        citation_id = (
+            _require_non_empty_string(
+                citation_id,
+                field_name,
+            )
+        )
+
+        if citation_id not in citation_lookup:
+            raise ValueError(
+                "Claim references unknown citation ID: "
+                f"{citation_id}"
+            )
+
+        if citation_id in seen:
+            continue
+
+        seen.add(
+            citation_id
+        )
+
+        validated.append(
+            citation_id
+        )
+
+    return validated
+
+
+def _extract_item_citation_ids(
+    item: dict,
+    citation_lookup: dict[str, dict],
+    *,
+    field_prefix: str,
+) -> list[str]:
+    """Extract one or many approved citations from an evidence item.
+
+    Backward-compatible forms:
+
+        citation_id = "E1"
+
+    New form:
+
+        citation_ids = ["E1", "E2"]
+
+    If both forms are provided, the singular citation must be included in the
+    plural list. This prevents contradictory citation metadata.
+    """
+
+    singular_present = (
+        "citation_id"
+        in item
+        and item.get(
+            "citation_id"
+        )
+        is not None
+    )
+
+    plural_present = (
+        "citation_ids"
+        in item
+        and item.get(
+            "citation_ids"
+        )
+        is not None
+    )
+
+    singular_id = None
+
+    plural_ids = []
+
+    if singular_present:
+        singular_id = (
+            _require_non_empty_string(
+                item.get(
+                    "citation_id"
+                ),
+                f"{field_prefix}.citation_id",
+            )
+        )
+
+        if singular_id not in citation_lookup:
+            raise ValueError(
+                "Claim references unknown citation ID: "
+                f"{singular_id}"
+            )
+
+    if plural_present:
+        raw_plural_ids = _require_list(
+            item.get(
+                "citation_ids"
+            ),
+            f"{field_prefix}.citation_ids",
+        )
+
+        plural_ids = (
+            _normalise_citation_id_list(
+                raw_plural_ids,
+                citation_lookup,
+                field_name=(
+                    f"{field_prefix} citation ID"
+                ),
+            )
+        )
+
+        if not plural_ids:
+            raise ValueError(
+                f"{field_prefix}.citation_ids "
+                "must contain at least one citation"
+            )
+
+    if (
+        singular_present
+        and plural_present
+    ):
+        if singular_id not in plural_ids:
+            raise ValueError(
+                f"{field_prefix}.citation_id conflicts "
+                "with citation_ids"
+            )
+
+        return plural_ids
+
+    if plural_present:
+        return plural_ids
+
+    if singular_present:
+        return [
+            singular_id
+        ]
+
+    raise ValueError(
+        f"{field_prefix} must contain citation_id "
+        "or citation_ids"
+    )
+
+
 def _validate_response_citations(
     grounded_response: dict,
     citation_lookup: dict[str, dict],
 ) -> list[str]:
+    """Validate response-level citation references."""
+
     citations_used = _require_list(
         grounded_response.get(
             "citations_used",
@@ -194,10 +392,14 @@ def _validate_response_citations(
 
     validated = []
 
+    seen = set()
+
     for citation_id in citations_used:
-        citation_id = _require_non_empty_string(
-            citation_id,
-            "grounded_response citation ID",
+        citation_id = (
+            _require_non_empty_string(
+                citation_id,
+                "grounded_response citation ID",
+            )
         )
 
         if citation_id not in citation_lookup:
@@ -205,6 +407,13 @@ def _validate_response_citations(
                 "Grounded Response cites unknown "
                 f"citation ID: {citation_id}"
             )
+
+        if citation_id in seen:
+            continue
+
+        seen.add(
+            citation_id
+        )
 
         validated.append(
             citation_id
@@ -220,11 +429,15 @@ def _claim_record(
     citation_ids: list[str],
     support_status: str,
 ) -> dict:
+    """Create one deterministic claim-linkage record."""
+
     return {
         "claim_id": claim_id,
         "claim_text": claim_text,
         "section": section,
-        "citation_ids": citation_ids,
+        "citation_ids": list(
+            citation_ids
+        ),
         "support_status": support_status,
     }
 
@@ -233,6 +446,8 @@ def _extract_answer_claims(
     grounded_response: dict,
     citation_lookup: dict[str, dict],
 ) -> list[dict]:
+    """Extract evidence claims from an ANSWER response."""
+
     sections = _require_mapping(
         grounded_response.get(
             "sections"
@@ -262,34 +477,33 @@ def _extract_answer_claims(
             "evidence-based explanation item",
         )
 
-        claim_text = _require_non_empty_string(
-            item.get(
-                "evidence_text"
-            ),
-            "evidence claim text",
-        )
-
-        citation_id = _require_non_empty_string(
-            item.get(
-                "citation_id"
-            ),
-            "evidence claim citation_id",
-        )
-
-        if citation_id not in citation_lookup:
-            raise ValueError(
-                "Claim references unknown citation ID: "
-                f"{citation_id}"
+        claim_text = (
+            _require_non_empty_string(
+                item.get(
+                    "evidence_text"
+                ),
+                "evidence claim text",
             )
+        )
+
+        citation_ids = (
+            _extract_item_citation_ids(
+                item,
+                citation_lookup,
+                field_prefix=(
+                    "evidence-based explanation item"
+                ),
+            )
+        )
 
         claims.append(
             _claim_record(
                 claim_id=f"C{index}",
                 claim_text=claim_text,
-                section="evidence_based_explanation",
-                citation_ids=[
-                    citation_id
-                ],
+                section=(
+                    "evidence_based_explanation"
+                ),
+                citation_ids=citation_ids,
                 support_status=SUPPORTED,
             )
         )
@@ -301,14 +515,20 @@ def _extract_answer_claims(
     if management_summary:
         claims.append(
             _claim_record(
-                claim_id=f"C{len(claims) + 1}",
-                claim_text=_require_non_empty_string(
-                    management_summary,
-                    "management_summary",
+                claim_id=(
+                    f"C{len(claims) + 1}"
+                ),
+                claim_text=(
+                    _require_non_empty_string(
+                        management_summary,
+                        "management_summary",
+                    )
                 ),
                 section="management_summary",
                 citation_ids=[],
-                support_status=NON_SUBSTANTIVE,
+                support_status=(
+                    NON_SUBSTANTIVE
+                ),
             )
         )
 
@@ -319,14 +539,22 @@ def _extract_answer_claims(
     if operational_implication:
         claims.append(
             _claim_record(
-                claim_id=f"C{len(claims) + 1}",
-                claim_text=_require_non_empty_string(
-                    operational_implication,
-                    "operational_implication",
+                claim_id=(
+                    f"C{len(claims) + 1}"
                 ),
-                section="operational_implication",
+                claim_text=(
+                    _require_non_empty_string(
+                        operational_implication,
+                        "operational_implication",
+                    )
+                ),
+                section=(
+                    "operational_implication"
+                ),
                 citation_ids=[],
-                support_status=NON_SUBSTANTIVE,
+                support_status=(
+                    NON_SUBSTANTIVE
+                ),
             )
         )
 
@@ -337,6 +565,8 @@ def _extract_review_claims(
     grounded_response: dict,
     citation_lookup: dict[str, dict],
 ) -> list[dict]:
+    """Extract evidence claims from a REVIEW response."""
+
     sections = _require_mapping(
         grounded_response.get(
             "sections"
@@ -366,34 +596,31 @@ def _extract_review_claims(
             "review evidence-summary item",
         )
 
-        claim_text = _require_non_empty_string(
-            item.get(
-                "evidence_text"
-            ),
-            "review claim text",
-        )
-
-        citation_id = _require_non_empty_string(
-            item.get(
-                "citation_id"
-            ),
-            "review claim citation_id",
-        )
-
-        if citation_id not in citation_lookup:
-            raise ValueError(
-                "Review claim references unknown "
-                f"citation ID: {citation_id}"
+        claim_text = (
+            _require_non_empty_string(
+                item.get(
+                    "evidence_text"
+                ),
+                "review claim text",
             )
+        )
+
+        citation_ids = (
+            _extract_item_citation_ids(
+                item,
+                citation_lookup,
+                field_prefix=(
+                    "review evidence-summary item"
+                ),
+            )
+        )
 
         claims.append(
             _claim_record(
                 claim_id=f"C{index}",
                 claim_text=claim_text,
                 section="evidence_summary",
-                citation_ids=[
-                    citation_id
-                ],
+                citation_ids=citation_ids,
                 support_status=SUPPORTED,
             )
         )
@@ -405,16 +632,25 @@ def _extract_review_claims(
     if review_statement:
         claims.append(
             _claim_record(
-                claim_id=f"C{len(claims) + 1}",
-                claim_text=_require_non_empty_string(
-                    review_statement,
-                    "why_human_review_is_required",
+                claim_id=(
+                    f"C{len(claims) + 1}"
+                ),
+                claim_text=(
+                    _require_non_empty_string(
+                        review_statement,
+                        (
+                            "why_human_review_"
+                            "is_required"
+                        ),
+                    )
                 ),
                 section=(
                     "why_human_review_is_required"
                 ),
                 citation_ids=[],
-                support_status=NON_SUBSTANTIVE,
+                support_status=(
+                    NON_SUBSTANTIVE
+                ),
             )
         )
 
@@ -424,6 +660,8 @@ def _extract_review_claims(
 def _extract_abstention_claims(
     grounded_response: dict,
 ) -> list[dict]:
+    """Extract non-substantive statements from ABSTENTION."""
+
     sections = _require_mapping(
         grounded_response.get(
             "sections"
@@ -445,14 +683,20 @@ def _extract_abstention_claims(
         if value:
             claims.append(
                 _claim_record(
-                    claim_id=f"C{len(claims) + 1}",
-                    claim_text=_require_non_empty_string(
-                        value,
-                        section_name,
+                    claim_id=(
+                        f"C{len(claims) + 1}"
+                    ),
+                    claim_text=(
+                        _require_non_empty_string(
+                            value,
+                            section_name,
+                        )
                     ),
                     section=section_name,
                     citation_ids=[],
-                    support_status=NON_SUBSTANTIVE,
+                    support_status=(
+                        NON_SUBSTANTIVE
+                    ),
                 )
             )
 
@@ -463,7 +707,20 @@ def build_claim_citation_links(
     grounded_response: dict,
     answer_context: dict,
 ) -> dict:
-    """Build deterministic claim-to-citation links."""
+    """Build deterministic claim-to-citation links.
+
+    The returned contract preserves citation_ids as a list for every claim.
+
+    A material claim may therefore reference:
+
+        ["E1"]
+
+    or:
+
+        ["E1", "E2"]
+
+    while existing single-citation grounded responses remain fully supported.
+    """
 
     grounded_response = _require_mapping(
         grounded_response,
@@ -484,13 +741,17 @@ def build_claim_citation_links(
         answer_context,
     )
 
-    citation_lookup = _build_citation_lookup(
-        answer_context
+    citation_lookup = (
+        _build_citation_lookup(
+            answer_context
+        )
     )
 
-    _validate_response_citations(
-        grounded_response,
-        citation_lookup,
+    citations_used = (
+        _validate_response_citations(
+            grounded_response,
+            citation_lookup,
+        )
     )
 
     if response_type == "ANSWER":
@@ -506,8 +767,10 @@ def build_claim_citation_links(
         )
 
     elif response_type == "ABSTENTION":
-        claims = _extract_abstention_claims(
-            grounded_response,
+        claims = (
+            _extract_abstention_claims(
+                grounded_response
+            )
         )
 
     else:
@@ -520,7 +783,9 @@ def build_claim_citation_links(
         1
         for claim in claims
         if (
-            claim["support_status"]
+            claim[
+                "support_status"
+            ]
             == SUPPORTED
         )
     )
@@ -529,7 +794,9 @@ def build_claim_citation_links(
         1
         for claim in claims
         if (
-            claim["support_status"]
+            claim[
+                "support_status"
+            ]
             == NON_SUBSTANTIVE
         )
     )
@@ -538,13 +805,36 @@ def build_claim_citation_links(
         claim
         for claim in claims
         if (
-            claim["support_status"]
+            claim[
+                "support_status"
+            ]
             == UNSUPPORTED
         )
     ]
 
+    linked_citation_ids = []
+
+    seen_linked_citations = set()
+
+    for claim in claims:
+        for citation_id in claim[
+            "citation_ids"
+        ]:
+            if citation_id in (
+                seen_linked_citations
+            ):
+                continue
+
+            seen_linked_citations.add(
+                citation_id
+            )
+
+            linked_citation_ids.append(
+                citation_id
+            )
+
     return {
-        "linkage_version": "1.0",
+        "linkage_version": "2.0",
         "packet_id": packet_id,
         "governance_decision": (
             governance_decision
@@ -566,7 +856,16 @@ def build_claim_citation_links(
             "unsupported_count": len(
                 unsupported_claims
             ),
+            "linked_citation_count": len(
+                linked_citation_ids
+            ),
         },
+        "citations_used": (
+            citations_used
+        ),
+        "linked_citation_ids": (
+            linked_citation_ids
+        ),
         "unsupported_claims": (
             unsupported_claims
         ),
@@ -575,5 +874,6 @@ def build_claim_citation_links(
             "packet_identity_preserved": True,
             "governance_preserved": True,
             "response_type_preserved": True,
+            "multi_citation_claims_supported": True,
         },
     }

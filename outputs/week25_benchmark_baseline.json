@@ -1,15 +1,14 @@
 {
   "benchmark_name": "Week 25 Citation and Faithfulness Benchmark",
   "benchmark_version": "1.0",
-  "evaluation_type": "existing_logic_baseline",
+  "evaluation_type": "week25_day3_hardened_baseline",
   "summary": {
     "case_count": 18,
-    "matched_case_count": 17,
-    "mismatched_case_count": 1,
-    "match_rate": 0.9444,
-    "mismatched_case_ids": [
-      "W25-C012"
-    ]
+    "matched_case_count": 18,
+    "mismatched_case_count": 0,
+    "match_rate": 1.0,
+    "multi_source_case_count": 1,
+    "mismatched_case_ids": []
   },
   "results": [
     {
@@ -25,6 +24,8 @@
       "actual_verification_decision": "PASS",
       "expected_precedence_decision": "SAFE_TO_COMBINE",
       "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     },
@@ -43,6 +44,8 @@
       "actual_verification_decision": "PASS",
       "expected_precedence_decision": "SAFE_TO_COMBINE",
       "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     },
@@ -59,6 +62,8 @@
       "actual_verification_decision": "REVIEW_REQUIRED",
       "expected_precedence_decision": "SAFE_TO_COMBINE",
       "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     },
@@ -77,6 +82,8 @@
       "actual_verification_decision": "REVIEW_REQUIRED",
       "expected_precedence_decision": "SAFE_TO_COMBINE",
       "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     },
@@ -93,6 +100,8 @@
       "actual_verification_decision": "REVIEW_REQUIRED",
       "expected_precedence_decision": "REVIEW_BEFORE_COMBINATION",
       "actual_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     },
@@ -109,6 +118,8 @@
       "actual_verification_decision": "REVIEW_REQUIRED",
       "expected_precedence_decision": "SAFE_TO_COMBINE",
       "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     },
@@ -125,6 +136,8 @@
       "actual_verification_decision": "REVIEW_REQUIRED",
       "expected_precedence_decision": "SAFE_TO_COMBINE",
       "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     },
@@ -141,6 +154,8 @@
       "actual_verification_decision": "REVIEW_REQUIRED",
       "expected_precedence_decision": "SAFE_TO_COMBINE",
       "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     },
@@ -157,6 +172,8 @@
       "actual_verification_decision": "REVIEW_REQUIRED",
       "expected_precedence_decision": "SAFE_TO_COMBINE",
       "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     },
@@ -173,6 +190,8 @@
       "actual_verification_decision": "REVIEW_REQUIRED",
       "expected_precedence_decision": "REVIEW_BEFORE_COMBINATION",
       "actual_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     },
@@ -189,6 +208,8 @@
       "actual_verification_decision": "REVIEW_REQUIRED",
       "expected_precedence_decision": "REVIEW_BEFORE_COMBINATION",
       "actual_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     },
@@ -199,17 +220,39 @@
         "C1": "SUPPORTED"
       },
       "actual_claim_statuses": {
-        "C1": "PARTIALLY_SUPPORTED"
+        "C1": "SUPPORTED"
       },
       "expected_verification_decision": "PASS",
-      "actual_verification_decision": "REVIEW_REQUIRED",
+      "actual_verification_decision": "PASS",
       "expected_precedence_decision": "BLOCK_COMBINATION",
       "actual_precedence_decision": "BLOCK_COMBINATION",
-      "baseline_match": false,
-      "failure_reasons": [
-        "C1: expected SUPPORTED, got PARTIALLY_SUPPORTED",
-        "Verification decision mismatch: expected PASS, got REVIEW_REQUIRED"
-      ]
+      "multi_source_verification_used": true,
+      "multi_source_results": [
+        {
+          "claim_id": "C1",
+          "status": "SUPPORTED",
+          "reason": "The multi-source claim preserves all required approved citations and matches an explicit relationship established by Evidence Precedence.",
+          "relationship_type": "CONFLICT",
+          "required_citation_ids": [
+            "E1",
+            "E2"
+          ],
+          "attached_citation_ids": [
+            "E1",
+            "E2"
+          ],
+          "missing_citation_ids": [],
+          "invalid_citation_ids": [],
+          "document_ids": [
+            "DOC-A",
+            "DOC-B"
+          ],
+          "evidence_count": 2,
+          "precedence_decision": "BLOCK_COMBINATION"
+        }
+      ],
+      "baseline_match": true,
+      "failure_reasons": []
     },
     {
       "case_id": "W25-C013",
@@ -224,6 +267,8 @@
       "actual_verification_decision": "PASS",
       "expected_precedence_decision": "BLOCK_COMBINATION",
       "actual_precedence_decision": "BLOCK_COMBINATION",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     },
@@ -240,6 +285,8 @@
       "actual_verification_decision": "REVIEW_REQUIRED",
       "expected_precedence_decision": "SAFE_TO_COMBINE",
       "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     },
@@ -256,6 +303,8 @@
       "actual_verification_decision": "REVIEW_REQUIRED",
       "expected_precedence_decision": "SAFE_TO_COMBINE",
       "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     },
@@ -268,6 +317,8 @@
       "actual_verification_decision": "ABSTAIN",
       "expected_precedence_decision": "REVIEW_BEFORE_COMBINATION",
       "actual_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     },
@@ -284,6 +335,8 @@
       "actual_verification_decision": "REVIEW_REQUIRED",
       "expected_precedence_decision": "REVIEW_BEFORE_COMBINATION",
       "actual_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     },
@@ -300,6 +353,8 @@
       "actual_verification_decision": "REVIEW_REQUIRED",
       "expected_precedence_decision": "SAFE_TO_COMBINE",
       "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "multi_source_verification_used": false,
+      "multi_source_results": [],
       "baseline_match": true,
       "failure_reasons": []
     }
