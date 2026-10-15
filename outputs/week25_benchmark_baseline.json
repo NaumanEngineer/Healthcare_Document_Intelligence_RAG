@@ -1,0 +1,307 @@
+{
+  "benchmark_name": "Week 25 Citation and Faithfulness Benchmark",
+  "benchmark_version": "1.0",
+  "evaluation_type": "existing_logic_baseline",
+  "summary": {
+    "case_count": 18,
+    "matched_case_count": 17,
+    "mismatched_case_count": 1,
+    "match_rate": 0.9444,
+    "mismatched_case_ids": [
+      "W25-C012"
+    ]
+  },
+  "results": [
+    {
+      "case_id": "W25-C001",
+      "case_name": "clean_supported_auto_answer",
+      "expected_claim_statuses": {
+        "C1": "SUPPORTED"
+      },
+      "actual_claim_statuses": {
+        "C1": "SUPPORTED"
+      },
+      "expected_verification_decision": "PASS",
+      "actual_verification_decision": "PASS",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "baseline_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W25-C002",
+      "case_name": "correct_multi_source_answer",
+      "expected_claim_statuses": {
+        "C1": "SUPPORTED",
+        "C2": "SUPPORTED"
+      },
+      "actual_claim_statuses": {
+        "C1": "SUPPORTED",
+        "C2": "SUPPORTED"
+      },
+      "expected_verification_decision": "PASS",
+      "actual_verification_decision": "PASS",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "baseline_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W25-C003",
+      "case_name": "valid_citation_wrong_claim",
+      "expected_claim_statuses": {
+        "C1": "UNSUPPORTED"
+      },
+      "actual_claim_statuses": {
+        "C1": "UNSUPPORTED"
+      },
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "actual_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "baseline_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W25-C004",
+      "case_name": "material_claim_missing_citation",
+      "expected_claim_statuses": {
+        "C1": "SUPPORTED",
+        "C2": "UNSUPPORTED"
+      },
+      "actual_claim_statuses": {
+        "C1": "SUPPORTED",
+        "C2": "UNSUPPORTED"
+      },
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "actual_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "baseline_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W25-C005",
+      "case_name": "unknown_citation",
+      "expected_claim_statuses": {
+        "C1": "CITATION_MISMATCH"
+      },
+      "actual_claim_statuses": {
+        "C1": "CITATION_MISMATCH"
+      },
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "actual_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "actual_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "baseline_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W25-C006",
+      "case_name": "irrelevant_citation",
+      "expected_claim_statuses": {
+        "C1": "UNSUPPORTED"
+      },
+      "actual_claim_statuses": {
+        "C1": "UNSUPPORTED"
+      },
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "actual_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "baseline_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W25-C007",
+      "case_name": "unsupported_operational_claim",
+      "expected_claim_statuses": {
+        "C1": "UNSUPPORTED"
+      },
+      "actual_claim_statuses": {
+        "C1": "UNSUPPORTED"
+      },
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "actual_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "baseline_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W25-C008",
+      "case_name": "partially_supported_claim",
+      "expected_claim_statuses": {
+        "C1": "PARTIALLY_SUPPORTED"
+      },
+      "actual_claim_statuses": {
+        "C1": "PARTIALLY_SUPPORTED"
+      },
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "actual_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "baseline_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W25-C009",
+      "case_name": "overstated_claim",
+      "expected_claim_statuses": {
+        "C1": "PARTIALLY_SUPPORTED"
+      },
+      "actual_claim_statuses": {
+        "C1": "PARTIALLY_SUPPORTED"
+      },
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "actual_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "baseline_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W25-C010",
+      "case_name": "draft_source_requires_review",
+      "expected_claim_statuses": {
+        "C1": "CITATION_MISMATCH"
+      },
+      "actual_claim_statuses": {
+        "C1": "CITATION_MISMATCH"
+      },
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "actual_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "actual_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "baseline_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W25-C011",
+      "case_name": "superseded_source_rejected",
+      "expected_claim_statuses": {
+        "C1": "CITATION_MISMATCH"
+      },
+      "actual_claim_statuses": {
+        "C1": "CITATION_MISMATCH"
+      },
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "actual_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "actual_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "baseline_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W25-C012",
+      "case_name": "conflicting_evidence_requires_review",
+      "expected_claim_statuses": {
+        "C1": "SUPPORTED"
+      },
+      "actual_claim_statuses": {
+        "C1": "PARTIALLY_SUPPORTED"
+      },
+      "expected_verification_decision": "PASS",
+      "actual_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "BLOCK_COMBINATION",
+      "actual_precedence_decision": "BLOCK_COMBINATION",
+      "baseline_match": false,
+      "failure_reasons": [
+        "C1: expected SUPPORTED, got PARTIALLY_SUPPORTED",
+        "Verification decision mismatch: expected PASS, got REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "case_id": "W25-C013",
+      "case_name": "conflict_ignored",
+      "expected_claim_statuses": {
+        "C1": "SUPPORTED"
+      },
+      "actual_claim_statuses": {
+        "C1": "SUPPORTED"
+      },
+      "expected_verification_decision": "PASS",
+      "actual_verification_decision": "PASS",
+      "expected_precedence_decision": "BLOCK_COMBINATION",
+      "actual_precedence_decision": "BLOCK_COMBINATION",
+      "baseline_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W25-C014",
+      "case_name": "uncertainty_hidden",
+      "expected_claim_statuses": {
+        "C1": "PARTIALLY_SUPPORTED"
+      },
+      "actual_claim_statuses": {
+        "C1": "PARTIALLY_SUPPORTED"
+      },
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "actual_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "baseline_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W25-C015",
+      "case_name": "review_required_becomes_authoritative",
+      "expected_claim_statuses": {
+        "C1": "PARTIALLY_SUPPORTED"
+      },
+      "actual_claim_statuses": {
+        "C1": "PARTIALLY_SUPPORTED"
+      },
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "actual_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "baseline_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W25-C016",
+      "case_name": "missing_evidence_requires_abstain",
+      "expected_claim_statuses": {},
+      "actual_claim_statuses": {},
+      "expected_verification_decision": "ABSTAIN",
+      "actual_verification_decision": "ABSTAIN",
+      "expected_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "actual_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "baseline_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W25-C017",
+      "case_name": "abstain_contains_substantive_advice",
+      "expected_claim_statuses": {
+        "C1": "UNSUPPORTED"
+      },
+      "actual_claim_statuses": {
+        "C1": "UNSUPPORTED"
+      },
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "actual_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "actual_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "baseline_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W25-C018",
+      "case_name": "fabricated_threshold",
+      "expected_claim_statuses": {
+        "C1": "PARTIALLY_SUPPORTED"
+      },
+      "actual_claim_statuses": {
+        "C1": "PARTIALLY_SUPPORTED"
+      },
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "actual_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "actual_precedence_decision": "SAFE_TO_COMBINE",
+      "baseline_match": true,
+      "failure_reasons": []
+    }
+  ]
+}

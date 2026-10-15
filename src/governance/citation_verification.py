@@ -6,13 +6,13 @@ It verifies whether:
 - an answer claim has cited evidence;
 - the cited document/chunk exists;
 - the cited evidence is lifecycle-safe;
-- lexical evidence supports the claim;
 - material high-risk mismatches are absent;
+- lexical evidence supports the claim;
 - safe borderline paraphrases can be recovered through semantic similarity.
 
 Safety principle:
 
-Semantic rescue can never override:
+Neither lexical overlap nor semantic similarity may override:
 - citation mismatch;
 - non-Active evidence;
 - unsupported numbers;
@@ -22,8 +22,8 @@ Semantic rescue can never override:
 - negation mismatch;
 - unsupported prohibitions.
 
-This remains a governed prototype. Semantic similarity is not treated as proof
-of factual entailment.
+This remains a governed prototype. Lexical or semantic similarity is not
+treated as proof of factual entailment.
 """
 
 from __future__ import annotations
@@ -159,10 +159,10 @@ def _get_evidence_text(
 def _get_semantic_evidence_text(
     evidence: dict[str, Any],
 ) -> str:
-    """Return the most appropriate evidence text for semantic comparison.
+    """Return the evidence text used for semantic and safety comparison.
 
-    Prefer the actual chunk text so title overlap does not artificially inflate
-    semantic similarity.
+    Prefer the actual source chunk so title overlap does not artificially
+    affect semantic similarity or high-risk mismatch evaluation.
     """
 
     text = evidence.get("text")
@@ -336,11 +336,14 @@ def verify_claim_citation(
     2. citation resolution;
     3. document/chunk identity;
     4. lifecycle safety;
-    5. lexical support;
-    6. high-risk mismatch guard;
-    7. semantic rescue for low-risk paraphrases.
+    5. lexical coverage calculation;
+    6. deterministic high-risk mismatch guard;
+    7. lexical support decision;
+    8. semantic rescue for low-risk paraphrases;
+    9. unresolved evidence handling.
 
-    Semantic rescue never overrides a hard safety failure.
+    High-risk deterministic controls run before either lexical or semantic
+    similarity may produce a final SUPPORTED decision.
     """
 
     if not isinstance(
@@ -507,47 +510,18 @@ def verify_claim_citation(
         evidence_text,
     )
 
-    # --------------------------------------------------------------
-    # Stage 1: ordinary lexical pass
-    # --------------------------------------------------------------
-
-    if (
-        support_ratio
-        >= support_threshold
-    ):
-        return {
-            "claim_id": claim_id,
-            "claim_text": claim_text,
-            "status": "SUPPORTED",
-            "reason": (
-                "Cited evidence contains sufficient "
-                "material lexical support for the claim."
-            ),
-            "support_ratio": round(
-                support_ratio,
-                4,
-            ),
-            "matched_terms": matched_terms,
-            "missing_terms": missing_terms,
-            "document_id": evidence.get(
-                "document_id"
-            ),
-            "chunk_id": evidence.get(
-                "chunk_id"
-            ),
-        }
-
-    # --------------------------------------------------------------
-    # Stage 2: high-risk mismatch guard
-    #
-    # This runs BEFORE semantic rescue.
-    # --------------------------------------------------------------
-
     semantic_evidence_text = (
         _get_semantic_evidence_text(
             evidence
         )
     )
+
+    # --------------------------------------------------------------
+    # Stage 1: deterministic high-risk mismatch guard
+    #
+    # This MUST run before either lexical support or semantic rescue
+    # is permitted to return SUPPORTED.
+    # --------------------------------------------------------------
 
     guard = (
         detect_high_risk_mismatch(
@@ -571,7 +545,7 @@ def verify_claim_citation(
             "status": status,
             "reason": (
                 "Claim contains a material high-risk "
-                "mismatch that blocks semantic rescue: "
+                "mismatch that blocks a SUPPORTED decision: "
                 + ", ".join(
                     guard["reasons"]
                 )
@@ -587,6 +561,66 @@ def verify_claim_citation(
             ),
             "chunk_id": evidence.get(
                 "chunk_id"
+            ),
+            "high_risk_guard": {
+                "guard_triggered": True,
+                "reasons": list(
+                    guard["reasons"]
+                ),
+                "unsupported_numbers": list(
+                    guard.get(
+                        "unsupported_numbers",
+                        [],
+                    )
+                ),
+                "unsupported_actors": list(
+                    guard.get(
+                        "unsupported_actors",
+                        [],
+                    )
+                ),
+                "unsupported_actions": list(
+                    guard.get(
+                        "unsupported_actions",
+                        [],
+                    )
+                ),
+            },
+        }
+
+    # --------------------------------------------------------------
+    # Stage 2: ordinary lexical support
+    #
+    # Reaching this stage proves the deterministic safety guard passed.
+    # --------------------------------------------------------------
+
+    if (
+        support_ratio
+        >= support_threshold
+    ):
+        return {
+            "claim_id": claim_id,
+            "claim_text": claim_text,
+            "status": "SUPPORTED",
+            "reason": (
+                "Claim passed deterministic high-risk guards "
+                "and cited evidence contains sufficient "
+                "material lexical support."
+            ),
+            "support_ratio": round(
+                support_ratio,
+                4,
+            ),
+            "matched_terms": matched_terms,
+            "missing_terms": missing_terms,
+            "document_id": evidence.get(
+                "document_id"
+            ),
+            "chunk_id": evidence.get(
+                "chunk_id"
+            ),
+            "verification_method": (
+                "guarded_lexical_support"
             ),
         }
 
@@ -612,9 +646,9 @@ def verify_claim_citation(
                 "status": "SUPPORTED",
                 "reason": (
                     "Lexical support was below threshold, "
-                    "but the claim passed high-risk guards "
-                    "and met the semantic paraphrase-rescue "
-                    "threshold."
+                    "but the claim passed deterministic "
+                    "high-risk guards and met the semantic "
+                    "paraphrase-rescue threshold."
                 ),
                 "support_ratio": round(
                     support_ratio,
@@ -649,7 +683,7 @@ def verify_claim_citation(
         reason = (
             "Cited evidence supports part of the claim "
             "but the claim did not qualify for safe "
-            "semantic rescue."
+            "lexical or semantic support."
         )
 
     else:

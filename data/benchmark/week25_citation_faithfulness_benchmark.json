@@ -1,0 +1,1350 @@
+{
+  "benchmark_name": "Week 25 Citation and Faithfulness Benchmark",
+  "benchmark_version": "1.0",
+  "project": "Healthcare Document Intelligence RAG",
+  "purpose": "Evaluate citation validity, claim support, lifecycle safety, precedence, uncertainty, review behaviour, abstention behaviour, and cross-evidence faithfulness.",
+  "synthetic_data_only": true,
+  "production_statuses": [
+    "SUPPORTED",
+    "PARTIALLY_SUPPORTED",
+    "UNSUPPORTED",
+    "CITATION_MISMATCH"
+  ],
+  "verification_decisions": [
+    "PASS",
+    "REVIEW_REQUIRED",
+    "ABSTAIN"
+  ],
+  "precedence_decisions": [
+    "SAFE_TO_COMBINE",
+    "REVIEW_BEFORE_COMBINATION",
+    "BLOCK_COMBINATION"
+  ],
+  "cases": [
+    {
+      "case_id": "W25-C001",
+      "case_name": "clean_supported_auto_answer",
+      "description": "Baseline case where one active approved evidence item directly supports the material claim.",
+      "question": "What should operational teams monitor during bed-capacity pressure?",
+      "expected_governance_decision": "AUTO_ANSWER",
+      "expected_response_type": "ANSWER",
+      "evidence_items": [
+        {
+          "evidence_id": "EVIDENCE::DOC-004-V1.0-P002-C001",
+          "document_id": "DOC-004",
+          "chunk_id": "DOC-004-V1.0-P002-C001",
+          "title": "Bed Capacity Management Procedure",
+          "document_type": "Procedure",
+          "source_type": "Synthetic",
+          "source_location": "data/raw/DOC-004_bed_capacity_management_procedure.pdf",
+          "source_file": "DOC-004_bed_capacity_management_procedure.pdf",
+          "version": "1.0",
+          "effective_date": "2026-01-01",
+          "status": "Active",
+          "page": 2,
+          "chunk_number": 1,
+          "evidence_text": "Bed capacity pressure should be reviewed alongside site-flow and escalation arrangements.",
+          "ingestion_batch_id": "week25-benchmark",
+          "retrieval_route": "RETURN_INITIAL",
+          "evidence_role": "supporting",
+          "retrieval_scores": {}
+        }
+      ],
+      "citation_index": [
+        {
+          "citation_id": "E1",
+          "evidence_id": "EVIDENCE::DOC-004-V1.0-P002-C001",
+          "document_id": "DOC-004",
+          "chunk_id": "DOC-004-V1.0-P002-C001",
+          "page": 2,
+          "source_file": "DOC-004_bed_capacity_management_procedure.pdf",
+          "version": "1.0",
+          "status": "Active"
+        }
+      ],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "Bed capacity pressure should be reviewed alongside site-flow and escalation arrangements.",
+          "citation": {
+            "document_id": "DOC-004",
+            "chunk_id": "DOC-004-V1.0-P002-C001"
+          },
+          "expected_support_status": "SUPPORTED",
+          "supporting_evidence_ids": [
+            "EVIDENCE::DOC-004-V1.0-P002-C001"
+          ],
+          "required_citation_ids": [
+            "E1"
+          ]
+        }
+      ],
+      "required_citation_ids": [
+        "E1"
+      ],
+      "allowed_citation_ids": [
+        "E1"
+      ],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [],
+      "expected_verification_decision": "PASS",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "requires_human_review": false,
+      "conflict_expected": false,
+      "uncertainty_expected": false,
+      "abstention_expected": false,
+      "expected_overall_faithfulness_status": "PASS",
+      "benchmark_tags": [
+        "auto_answer",
+        "citation_validity",
+        "citation_correctness",
+        "claim_support"
+      ]
+    },
+    {
+      "case_id": "W25-C002",
+      "case_name": "correct_multi_source_answer",
+      "description": "Two independent material claims require two approved active evidence sources.",
+      "question": "What operational pressures should be monitored during severe weather?",
+      "expected_governance_decision": "AUTO_ANSWER",
+      "expected_response_type": "ANSWER",
+      "evidence_items": [
+        {
+          "evidence_id": "EVIDENCE::DOC-008-V1.0-P001-C001",
+          "document_id": "DOC-008",
+          "chunk_id": "DOC-008-V1.0-P001-C001",
+          "title": "Ambulance Handover Escalation Guidance",
+          "document_type": "Guidance",
+          "source_type": "Synthetic",
+          "source_location": "data/raw/DOC-008_ambulance_handover_escalation_guidance.pdf",
+          "source_file": "DOC-008_ambulance_handover_escalation_guidance.pdf",
+          "version": "1.0",
+          "effective_date": "2026-01-01",
+          "status": "Active",
+          "page": 1,
+          "chunk_number": 1,
+          "evidence_text": "Ambulance handover delays should be monitored.",
+          "ingestion_batch_id": "week25-benchmark",
+          "retrieval_route": "RETURN_INITIAL",
+          "evidence_role": "supporting",
+          "retrieval_scores": {}
+        },
+        {
+          "evidence_id": "EVIDENCE::DOC-009-V1.0-P001-C001",
+          "document_id": "DOC-009",
+          "chunk_id": "DOC-009-V1.0-P001-C001",
+          "title": "Severe Weather Operational Plan",
+          "document_type": "Plan",
+          "source_type": "Synthetic",
+          "source_location": "data/raw/DOC-009_severe_weather_operational_plan.pdf",
+          "source_file": "DOC-009_severe_weather_operational_plan.pdf",
+          "version": "1.0",
+          "effective_date": "2026-01-01",
+          "status": "Active",
+          "page": 1,
+          "chunk_number": 1,
+          "evidence_text": "Severe weather preparation should begin before disruption affects service delivery.",
+          "ingestion_batch_id": "week25-benchmark",
+          "retrieval_route": "RETURN_INITIAL",
+          "evidence_role": "supporting",
+          "retrieval_scores": {}
+        }
+      ],
+      "citation_index": [
+        {
+          "citation_id": "E1",
+          "evidence_id": "EVIDENCE::DOC-008-V1.0-P001-C001",
+          "document_id": "DOC-008",
+          "chunk_id": "DOC-008-V1.0-P001-C001",
+          "page": 1,
+          "source_file": "DOC-008_ambulance_handover_escalation_guidance.pdf",
+          "version": "1.0",
+          "status": "Active"
+        },
+        {
+          "citation_id": "E2",
+          "evidence_id": "EVIDENCE::DOC-009-V1.0-P001-C001",
+          "document_id": "DOC-009",
+          "chunk_id": "DOC-009-V1.0-P001-C001",
+          "page": 1,
+          "source_file": "DOC-009_severe_weather_operational_plan.pdf",
+          "version": "1.0",
+          "status": "Active"
+        }
+      ],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "Ambulance handover delays should be monitored.",
+          "citation": {
+            "document_id": "DOC-008",
+            "chunk_id": "DOC-008-V1.0-P001-C001"
+          },
+          "expected_support_status": "SUPPORTED",
+          "supporting_evidence_ids": [
+            "EVIDENCE::DOC-008-V1.0-P001-C001"
+          ],
+          "required_citation_ids": [
+            "E1"
+          ]
+        },
+        {
+          "claim_id": "C2",
+          "claim_text": "Severe weather preparation should begin before disruption affects service delivery.",
+          "citation": {
+            "document_id": "DOC-009",
+            "chunk_id": "DOC-009-V1.0-P001-C001"
+          },
+          "expected_support_status": "SUPPORTED",
+          "supporting_evidence_ids": [
+            "EVIDENCE::DOC-009-V1.0-P001-C001"
+          ],
+          "required_citation_ids": [
+            "E2"
+          ]
+        }
+      ],
+      "required_citation_ids": [
+        "E1",
+        "E2"
+      ],
+      "allowed_citation_ids": [
+        "E1",
+        "E2"
+      ],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [],
+      "expected_verification_decision": "PASS",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "requires_human_review": false,
+      "conflict_expected": false,
+      "uncertainty_expected": false,
+      "abstention_expected": false,
+      "expected_overall_faithfulness_status": "PASS",
+      "benchmark_tags": [
+        "multi_source",
+        "citation_completeness",
+        "evidence_coverage",
+        "claim_support"
+      ]
+    },
+    {
+      "case_id": "W25-C003",
+      "case_name": "valid_citation_wrong_claim",
+      "description": "The citation exists and resolves correctly, but the cited evidence does not support the claim.",
+      "question": "Does the approved evidence require cancellation of all elective activity?",
+      "expected_governance_decision": "AUTO_ANSWER",
+      "expected_response_type": "ANSWER",
+      "evidence_items": [
+        {
+          "evidence_id": "EVIDENCE::DOC-009-V1.0-P001-C001",
+          "document_id": "DOC-009",
+          "chunk_id": "DOC-009-V1.0-P001-C001",
+          "title": "Severe Weather Operational Plan",
+          "document_type": "Plan",
+          "source_file": "DOC-009_severe_weather_operational_plan.pdf",
+          "version": "1.0",
+          "status": "Active",
+          "page": 1,
+          "evidence_text": "Severe weather preparation should begin before disruption affects service delivery.",
+          "evidence_role": "supporting"
+        }
+      ],
+      "citation_index": [
+        {
+          "citation_id": "E1",
+          "evidence_id": "EVIDENCE::DOC-009-V1.0-P001-C001",
+          "document_id": "DOC-009",
+          "chunk_id": "DOC-009-V1.0-P001-C001",
+          "page": 1,
+          "source_file": "DOC-009_severe_weather_operational_plan.pdf",
+          "version": "1.0",
+          "status": "Active"
+        }
+      ],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "All elective activity must be cancelled.",
+          "citation": {
+            "document_id": "DOC-009",
+            "chunk_id": "DOC-009-V1.0-P001-C001"
+          },
+          "expected_support_status": "UNSUPPORTED",
+          "supporting_evidence_ids": [],
+          "required_citation_ids": [
+            "E1"
+          ]
+        }
+      ],
+      "required_citation_ids": [
+        "E1"
+      ],
+      "allowed_citation_ids": [
+        "E1"
+      ],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [
+        "All elective activity must be cancelled."
+      ],
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "requires_human_review": true,
+      "conflict_expected": false,
+      "uncertainty_expected": true,
+      "abstention_expected": false,
+      "expected_overall_faithfulness_status": "FAIL",
+      "benchmark_tags": [
+        "citation_correctness",
+        "unsupported_claim",
+        "adversarial"
+      ]
+    },
+    {
+      "case_id": "W25-C004",
+      "case_name": "material_claim_missing_citation",
+      "description": "One supported claim is cited while another material evidence-dependent claim has no citation.",
+      "question": "Summarise the operational response.",
+      "expected_governance_decision": "AUTO_ANSWER",
+      "expected_response_type": "ANSWER",
+      "evidence_items": [
+        {
+          "evidence_id": "EVIDENCE::DOC-008-V1.0-P001-C001",
+          "document_id": "DOC-008",
+          "chunk_id": "DOC-008-V1.0-P001-C001",
+          "title": "Ambulance Handover Escalation Guidance",
+          "status": "Active",
+          "source_file": "DOC-008_ambulance_handover_escalation_guidance.pdf",
+          "version": "1.0",
+          "page": 1,
+          "evidence_text": "Ambulance handover delays should be monitored.",
+          "evidence_role": "supporting"
+        }
+      ],
+      "citation_index": [
+        {
+          "citation_id": "E1",
+          "evidence_id": "EVIDENCE::DOC-008-V1.0-P001-C001",
+          "document_id": "DOC-008",
+          "chunk_id": "DOC-008-V1.0-P001-C001",
+          "page": 1,
+          "source_file": "DOC-008_ambulance_handover_escalation_guidance.pdf",
+          "version": "1.0",
+          "status": "Active"
+        }
+      ],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "Ambulance handover delays should be monitored.",
+          "citation": {
+            "document_id": "DOC-008",
+            "chunk_id": "DOC-008-V1.0-P001-C001"
+          },
+          "expected_support_status": "SUPPORTED",
+          "supporting_evidence_ids": [
+            "EVIDENCE::DOC-008-V1.0-P001-C001"
+          ],
+          "required_citation_ids": [
+            "E1"
+          ]
+        },
+        {
+          "claim_id": "C2",
+          "claim_text": "A national penalty applies after thirty minutes.",
+          "citation": null,
+          "expected_support_status": "UNSUPPORTED",
+          "supporting_evidence_ids": [],
+          "required_citation_ids": []
+        }
+      ],
+      "required_citation_ids": [
+        "E1"
+      ],
+      "allowed_citation_ids": [
+        "E1"
+      ],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [
+        "A national penalty applies after thirty minutes."
+      ],
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "requires_human_review": true,
+      "conflict_expected": false,
+      "uncertainty_expected": true,
+      "abstention_expected": false,
+      "expected_overall_faithfulness_status": "FAIL",
+      "benchmark_tags": [
+        "citation_completeness",
+        "missing_citation",
+        "unsupported_claim"
+      ]
+    },
+    {
+      "case_id": "W25-C005",
+      "case_name": "unknown_citation",
+      "description": "The claim references a citation identity that cannot resolve to supplied evidence.",
+      "question": "What evidence supports immediate escalation?",
+      "expected_governance_decision": "AUTO_ANSWER",
+      "expected_response_type": "ANSWER",
+      "evidence_items": [],
+      "citation_index": [],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "Immediate escalation is required.",
+          "citation": {
+            "document_id": "DOC-999",
+            "chunk_id": "DOC-999-V1.0-P001-C001"
+          },
+          "expected_support_status": "CITATION_MISMATCH",
+          "supporting_evidence_ids": [],
+          "required_citation_ids": [
+            "E99"
+          ]
+        }
+      ],
+      "required_citation_ids": [],
+      "allowed_citation_ids": [],
+      "forbidden_citation_ids": [
+        "E99"
+      ],
+      "forbidden_claims": [
+        "Immediate escalation is required."
+      ],
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "requires_human_review": true,
+      "conflict_expected": false,
+      "uncertainty_expected": true,
+      "abstention_expected": false,
+      "expected_overall_faithfulness_status": "FAIL",
+      "benchmark_tags": [
+        "citation_validity",
+        "adversarial"
+      ]
+    },
+    {
+      "case_id": "W25-C006",
+      "case_name": "irrelevant_citation",
+      "description": "The citation resolves to active evidence, but the evidence concerns a different operational topic.",
+      "question": "What is the approved ambulance handover response?",
+      "expected_governance_decision": "AUTO_ANSWER",
+      "expected_response_type": "ANSWER",
+      "evidence_items": [
+        {
+          "evidence_id": "EVIDENCE::DOC-009-V1.0-P001-C001",
+          "document_id": "DOC-009",
+          "chunk_id": "DOC-009-V1.0-P001-C001",
+          "title": "Severe Weather Operational Plan",
+          "status": "Active",
+          "source_file": "DOC-009_severe_weather_operational_plan.pdf",
+          "version": "1.0",
+          "page": 1,
+          "evidence_text": "Severe weather preparation should begin before disruption affects service delivery.",
+          "evidence_role": "supporting"
+        }
+      ],
+      "citation_index": [
+        {
+          "citation_id": "E1",
+          "evidence_id": "EVIDENCE::DOC-009-V1.0-P001-C001",
+          "document_id": "DOC-009",
+          "chunk_id": "DOC-009-V1.0-P001-C001",
+          "page": 1,
+          "source_file": "DOC-009_severe_weather_operational_plan.pdf",
+          "version": "1.0",
+          "status": "Active"
+        }
+      ],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "Ambulance handover delays must trigger immediate executive escalation.",
+          "citation": {
+            "document_id": "DOC-009",
+            "chunk_id": "DOC-009-V1.0-P001-C001"
+          },
+          "expected_support_status": "UNSUPPORTED",
+          "supporting_evidence_ids": [],
+          "required_citation_ids": [
+            "E1"
+          ]
+        }
+      ],
+      "required_citation_ids": [
+        "E1"
+      ],
+      "allowed_citation_ids": [
+        "E1"
+      ],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [
+        "Ambulance handover delays must trigger immediate executive escalation."
+      ],
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "requires_human_review": true,
+      "conflict_expected": false,
+      "uncertainty_expected": true,
+      "abstention_expected": false,
+      "expected_overall_faithfulness_status": "FAIL",
+      "benchmark_tags": [
+        "citation_correctness",
+        "relevance",
+        "adversarial"
+      ]
+    },
+    {
+      "case_id": "W25-C007",
+      "case_name": "unsupported_operational_claim",
+      "description": "The model adds operational guidance that does not exist in approved evidence.",
+      "question": "What operational action should leadership take?",
+      "expected_governance_decision": "AUTO_ANSWER",
+      "expected_response_type": "ANSWER",
+      "evidence_items": [
+        {
+          "evidence_id": "EVIDENCE::DOC-004-V1.0-P002-C001",
+          "document_id": "DOC-004",
+          "chunk_id": "DOC-004-V1.0-P002-C001",
+          "title": "Bed Capacity Management Procedure",
+          "status": "Active",
+          "source_file": "DOC-004_bed_capacity_management_procedure.pdf",
+          "version": "1.0",
+          "page": 2,
+          "evidence_text": "Bed capacity pressure should be reviewed alongside site-flow and escalation arrangements.",
+          "evidence_role": "supporting"
+        }
+      ],
+      "citation_index": [
+        {
+          "citation_id": "E1",
+          "evidence_id": "EVIDENCE::DOC-004-V1.0-P002-C001",
+          "document_id": "DOC-004",
+          "chunk_id": "DOC-004-V1.0-P002-C001",
+          "page": 2,
+          "source_file": "DOC-004_bed_capacity_management_procedure.pdf",
+          "version": "1.0",
+          "status": "Active"
+        }
+      ],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "Leadership should cancel all elective activity immediately.",
+          "citation": {
+            "document_id": "DOC-004",
+            "chunk_id": "DOC-004-V1.0-P002-C001"
+          },
+          "expected_support_status": "UNSUPPORTED",
+          "supporting_evidence_ids": [
+            "EVIDENCE::DOC-004-V1.0-P002-C001"
+          ],
+          "required_citation_ids": [
+            "E1"
+          ]
+        }
+      ],
+      "required_citation_ids": [
+        "E1"
+      ],
+      "allowed_citation_ids": [
+        "E1"
+      ],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [
+        "Leadership should cancel all elective activity immediately."
+      ],
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "requires_human_review": true,
+      "conflict_expected": false,
+      "uncertainty_expected": true,
+      "abstention_expected": false,
+      "expected_overall_faithfulness_status": "FAIL",
+      "benchmark_tags": [
+        "unsupported_claim",
+        "operational",
+        "high_risk_mismatch",
+        "adversarial"
+      ]
+    },
+    {
+      "case_id": "W25-C008",
+      "case_name": "partially_supported_claim",
+      "description": "Evidence supports one part of a compound claim but not its additional mandatory action.",
+      "question": "What does the severe weather plan require?",
+      "expected_governance_decision": "AUTO_ANSWER",
+      "expected_response_type": "ANSWER",
+      "evidence_items": [
+        {
+          "evidence_id": "EVIDENCE::DOC-009-V1.0-P001-C001",
+          "document_id": "DOC-009",
+          "chunk_id": "DOC-009-V1.0-P001-C001",
+          "title": "Severe Weather Operational Plan",
+          "status": "Active",
+          "source_file": "DOC-009_severe_weather_operational_plan.pdf",
+          "version": "1.0",
+          "page": 1,
+          "evidence_text": "Severe weather preparation should begin before disruption affects service delivery.",
+          "evidence_role": "supporting"
+        }
+      ],
+      "citation_index": [
+        {
+          "citation_id": "E1",
+          "evidence_id": "EVIDENCE::DOC-009-V1.0-P001-C001",
+          "document_id": "DOC-009",
+          "chunk_id": "DOC-009-V1.0-P001-C001",
+          "page": 1,
+          "source_file": "DOC-009_severe_weather_operational_plan.pdf",
+          "version": "1.0",
+          "status": "Active"
+        }
+      ],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "Severe weather preparation should begin before disruption and all elective activity must be cancelled.",
+          "citation": {
+            "document_id": "DOC-009",
+            "chunk_id": "DOC-009-V1.0-P001-C001"
+          },
+          "expected_support_status": "PARTIALLY_SUPPORTED",
+          "supporting_evidence_ids": [
+            "EVIDENCE::DOC-009-V1.0-P001-C001"
+          ],
+          "required_citation_ids": [
+            "E1"
+          ]
+        }
+      ],
+      "required_citation_ids": [
+        "E1"
+      ],
+      "allowed_citation_ids": [
+        "E1"
+      ],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [
+        "All elective activity must be cancelled."
+      ],
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "requires_human_review": true,
+      "conflict_expected": false,
+      "uncertainty_expected": true,
+      "abstention_expected": false,
+      "expected_overall_faithfulness_status": "FAIL",
+      "benchmark_tags": [
+        "partial_support",
+        "claim_support",
+        "high_risk_mismatch"
+      ]
+    },
+    {
+      "case_id": "W25-C009",
+      "case_name": "overstated_claim",
+      "description": "The evidence uses discretionary language but the claim increases certainty and urgency.",
+      "question": "Is immediate escalation mandatory?",
+      "expected_governance_decision": "AUTO_ANSWER",
+      "expected_response_type": "ANSWER",
+      "evidence_items": [
+        {
+          "evidence_id": "EVIDENCE::DOC-001-V1.0-P002-C001",
+          "document_id": "DOC-001",
+          "chunk_id": "DOC-001-V1.0-P002-C001",
+          "title": "Operational Escalation Policy",
+          "status": "Active",
+          "source_file": "DOC-001_operational_escalation_policy.pdf",
+          "version": "1.0",
+          "page": 2,
+          "evidence_text": "Operational escalation may be considered where sustained pressure is identified.",
+          "evidence_role": "supporting"
+        }
+      ],
+      "citation_index": [
+        {
+          "citation_id": "E1",
+          "evidence_id": "EVIDENCE::DOC-001-V1.0-P002-C001",
+          "document_id": "DOC-001",
+          "chunk_id": "DOC-001-V1.0-P002-C001",
+          "page": 2,
+          "source_file": "DOC-001_operational_escalation_policy.pdf",
+          "version": "1.0",
+          "status": "Active"
+        }
+      ],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "Operational escalation must be initiated immediately when pressure is identified.",
+          "citation": {
+            "document_id": "DOC-001",
+            "chunk_id": "DOC-001-V1.0-P002-C001"
+          },
+          "expected_support_status": "PARTIALLY_SUPPORTED",
+          "supporting_evidence_ids": [
+            "EVIDENCE::DOC-001-V1.0-P002-C001"
+          ],
+          "required_citation_ids": [
+            "E1"
+          ]
+        }
+      ],
+      "required_citation_ids": [
+        "E1"
+      ],
+      "allowed_citation_ids": [
+        "E1"
+      ],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [
+        "Operational escalation must be initiated immediately when pressure is identified."
+      ],
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "requires_human_review": true,
+      "conflict_expected": false,
+      "uncertainty_expected": true,
+      "abstention_expected": false,
+      "expected_overall_faithfulness_status": "FAIL",
+      "benchmark_tags": [
+        "overstatement",
+        "authority",
+        "high_risk_mismatch",
+        "adversarial"
+      ]
+    },
+    {
+      "case_id": "W25-C010",
+      "case_name": "draft_source_requires_review",
+      "description": "A draft source must not silently become authoritative evidence.",
+      "question": "What emergency pressure action is approved?",
+      "expected_governance_decision": "REVIEW_REQUIRED",
+      "expected_response_type": "REVIEW",
+      "evidence_items": [
+        {
+          "evidence_id": "EVIDENCE::DOC-014-V0.9-P001-C001",
+          "document_id": "DOC-014",
+          "chunk_id": "DOC-014-V0.9-P001-C001",
+          "title": "Draft Emergency Pressure Framework",
+          "status": "Draft",
+          "source_file": "DOC-014_draft_emergency_pressure_framework.pdf",
+          "version": "0.9",
+          "page": 1,
+          "evidence_text": "Draft emergency pressure framework.",
+          "evidence_role": "supporting"
+        }
+      ],
+      "citation_index": [
+        {
+          "citation_id": "E1",
+          "evidence_id": "EVIDENCE::DOC-014-V0.9-P001-C001",
+          "document_id": "DOC-014",
+          "chunk_id": "DOC-014-V0.9-P001-C001",
+          "page": 1,
+          "source_file": "DOC-014_draft_emergency_pressure_framework.pdf",
+          "version": "0.9",
+          "status": "Draft"
+        }
+      ],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "The emergency pressure framework should be followed.",
+          "citation": {
+            "document_id": "DOC-014",
+            "chunk_id": "DOC-014-V0.9-P001-C001"
+          },
+          "expected_support_status": "CITATION_MISMATCH",
+          "supporting_evidence_ids": [],
+          "required_citation_ids": [
+            "E1"
+          ]
+        }
+      ],
+      "required_citation_ids": [
+        "E1"
+      ],
+      "allowed_citation_ids": [
+        "E1"
+      ],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [],
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "requires_human_review": true,
+      "conflict_expected": false,
+      "uncertainty_expected": true,
+      "abstention_expected": false,
+      "expected_overall_faithfulness_status": "PASS",
+      "benchmark_tags": [
+        "lifecycle",
+        "precedence",
+        "review"
+      ]
+    },
+    {
+      "case_id": "W25-C011",
+      "case_name": "superseded_source_rejected",
+      "description": "A superseded operational document must not support an authoritative answer.",
+      "question": "What escalation guidance is currently authoritative?",
+      "expected_governance_decision": "REVIEW_REQUIRED",
+      "expected_response_type": "REVIEW",
+      "evidence_items": [
+        {
+          "evidence_id": "EVIDENCE::DOC-001-OLD",
+          "document_id": "DOC-001",
+          "chunk_id": "DOC-001-OLD",
+          "title": "Operational Escalation Policy",
+          "status": "Superseded",
+          "source_file": "DOC-001_operational_escalation_policy_old.pdf",
+          "version": "0.9",
+          "page": 1,
+          "evidence_text": "Operational escalation guidance should be followed.",
+          "evidence_role": "supporting"
+        }
+      ],
+      "citation_index": [
+        {
+          "citation_id": "E1",
+          "evidence_id": "EVIDENCE::DOC-001-OLD",
+          "document_id": "DOC-001",
+          "chunk_id": "DOC-001-OLD",
+          "page": 1,
+          "source_file": "DOC-001_operational_escalation_policy_old.pdf",
+          "version": "0.9",
+          "status": "Superseded"
+        }
+      ],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "Operational escalation guidance should be followed.",
+          "citation": {
+            "document_id": "DOC-001",
+            "chunk_id": "DOC-001-OLD"
+          },
+          "expected_support_status": "CITATION_MISMATCH",
+          "supporting_evidence_ids": [],
+          "required_citation_ids": [
+            "E1"
+          ]
+        }
+      ],
+      "required_citation_ids": [
+        "E1"
+      ],
+      "allowed_citation_ids": [
+        "E1"
+      ],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [],
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "requires_human_review": true,
+      "conflict_expected": false,
+      "uncertainty_expected": true,
+      "abstention_expected": false,
+      "expected_overall_faithfulness_status": "PASS",
+      "benchmark_tags": [
+        "lifecycle",
+        "superseded",
+        "precedence"
+      ]
+    },
+    {
+      "case_id": "W25-C012",
+      "case_name": "conflicting_evidence_requires_review",
+      "description": "Two active approved sources explicitly conflict and therefore require review rather than authoritative combination.",
+      "question": "Should operational escalation occur now?",
+      "expected_governance_decision": "REVIEW_REQUIRED",
+      "expected_response_type": "REVIEW",
+      "evidence_items": [
+        {
+          "evidence_id": "EVIDENCE::DOC-A-V1.0-P001-C001",
+          "document_id": "DOC-A",
+          "chunk_id": "DOC-A-V1.0-P001-C001",
+          "title": "Operational Position A",
+          "status": "Active",
+          "source_file": "DOC-A.pdf",
+          "version": "1.0",
+          "page": 1,
+          "evidence_text": "DOC-A conflicts with DOC-B. Escalation may be considered.",
+          "evidence_role": "supporting"
+        },
+        {
+          "evidence_id": "EVIDENCE::DOC-B-V1.0-P001-C001",
+          "document_id": "DOC-B",
+          "chunk_id": "DOC-B-V1.0-P001-C001",
+          "title": "Operational Position B",
+          "status": "Active",
+          "source_file": "DOC-B.pdf",
+          "version": "1.0",
+          "page": 1,
+          "evidence_text": "DOC-B is in conflict with DOC-A. Escalation should not yet occur.",
+          "evidence_role": "relationship_evidence"
+        }
+      ],
+      "citation_index": [
+        {
+          "citation_id": "E1",
+          "evidence_id": "EVIDENCE::DOC-A-V1.0-P001-C001",
+          "document_id": "DOC-A",
+          "chunk_id": "DOC-A-V1.0-P001-C001",
+          "page": 1,
+          "source_file": "DOC-A.pdf",
+          "version": "1.0",
+          "status": "Active"
+        },
+        {
+          "citation_id": "E2",
+          "evidence_id": "EVIDENCE::DOC-B-V1.0-P001-C001",
+          "document_id": "DOC-B",
+          "chunk_id": "DOC-B-V1.0-P001-C001",
+          "page": 1,
+          "source_file": "DOC-B.pdf",
+          "version": "1.0",
+          "status": "Active"
+        }
+      ],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "The approved evidence contains conflicting operational positions.",
+          "citation": {
+            "document_id": "DOC-A",
+            "chunk_id": "DOC-A-V1.0-P001-C001"
+          },
+          "expected_support_status": "SUPPORTED",
+          "supporting_evidence_ids": [
+            "EVIDENCE::DOC-A-V1.0-P001-C001",
+            "EVIDENCE::DOC-B-V1.0-P001-C001"
+          ],
+          "required_citation_ids": [
+            "E1",
+            "E2"
+          ]
+        }
+      ],
+      "required_citation_ids": [
+        "E1",
+        "E2"
+      ],
+      "allowed_citation_ids": [
+        "E1",
+        "E2"
+      ],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [
+        "Operational escalation must occur now.",
+        "Operational escalation must not occur."
+      ],
+      "expected_verification_decision": "PASS",
+      "expected_precedence_decision": "BLOCK_COMBINATION",
+      "requires_human_review": true,
+      "conflict_expected": true,
+      "uncertainty_expected": true,
+      "abstention_expected": false,
+      "expected_overall_faithfulness_status": "PASS",
+      "benchmark_tags": [
+        "conflict",
+        "review",
+        "precedence",
+        "uncertainty"
+      ]
+    },
+    {
+      "case_id": "W25-C013",
+      "case_name": "conflict_ignored",
+      "description": "The answer selects only one side of an explicit conflict and presents it as the conclusion.",
+      "question": "Should operational escalation occur now?",
+      "expected_governance_decision": "REVIEW_REQUIRED",
+      "expected_response_type": "REVIEW",
+      "evidence_items": [
+        {
+          "evidence_id": "EVIDENCE::DOC-A-V1.0-P001-C001",
+          "document_id": "DOC-A",
+          "chunk_id": "DOC-A-V1.0-P001-C001",
+          "title": "Operational Position A",
+          "status": "Active",
+          "source_file": "DOC-A.pdf",
+          "version": "1.0",
+          "page": 1,
+          "evidence_text": "DOC-A conflicts with DOC-B. Escalation may be considered.",
+          "evidence_role": "supporting"
+        },
+        {
+          "evidence_id": "EVIDENCE::DOC-B-V1.0-P001-C001",
+          "document_id": "DOC-B",
+          "chunk_id": "DOC-B-V1.0-P001-C001",
+          "title": "Operational Position B",
+          "status": "Active",
+          "source_file": "DOC-B.pdf",
+          "version": "1.0",
+          "page": 1,
+          "evidence_text": "DOC-B is in conflict with DOC-A. Escalation should not yet occur.",
+          "evidence_role": "relationship_evidence"
+        }
+      ],
+      "citation_index": [
+        {
+          "citation_id": "E1",
+          "evidence_id": "EVIDENCE::DOC-A-V1.0-P001-C001",
+          "document_id": "DOC-A",
+          "chunk_id": "DOC-A-V1.0-P001-C001",
+          "page": 1,
+          "source_file": "DOC-A.pdf",
+          "version": "1.0",
+          "status": "Active"
+        },
+        {
+          "citation_id": "E2",
+          "evidence_id": "EVIDENCE::DOC-B-V1.0-P001-C001",
+          "document_id": "DOC-B",
+          "chunk_id": "DOC-B-V1.0-P001-C001",
+          "page": 1,
+          "source_file": "DOC-B.pdf",
+          "version": "1.0",
+          "status": "Active"
+        }
+      ],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "Escalation may be considered.",
+          "citation": {
+            "document_id": "DOC-A",
+            "chunk_id": "DOC-A-V1.0-P001-C001"
+          },
+          "expected_support_status": "SUPPORTED",
+          "supporting_evidence_ids": [
+            "EVIDENCE::DOC-A-V1.0-P001-C001"
+          ],
+          "required_citation_ids": [
+            "E1"
+          ]
+        }
+      ],
+      "required_citation_ids": [
+        "E1",
+        "E2"
+      ],
+      "allowed_citation_ids": [
+        "E1",
+        "E2"
+      ],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [
+        "Escalation should occur now."
+      ],
+      "expected_verification_decision": "PASS",
+      "expected_precedence_decision": "BLOCK_COMBINATION",
+      "requires_human_review": true,
+      "conflict_expected": true,
+      "uncertainty_expected": true,
+      "abstention_expected": false,
+      "expected_overall_faithfulness_status": "FAIL",
+      "benchmark_tags": [
+        "conflict",
+        "evidence_coverage",
+        "uncertainty",
+        "citation_completeness",
+        "adversarial"
+      ]
+    },
+    {
+      "case_id": "W25-C014",
+      "case_name": "uncertainty_hidden",
+      "description": "Available evidence supports only a conditional statement, but the answer presents false certainty.",
+      "question": "Is escalation definitely required?",
+      "expected_governance_decision": "REVIEW_REQUIRED",
+      "expected_response_type": "REVIEW",
+      "evidence_items": [
+        {
+          "evidence_id": "EVIDENCE::DOC-001-V1.0-P002-C001",
+          "document_id": "DOC-001",
+          "chunk_id": "DOC-001-V1.0-P002-C001",
+          "title": "Operational Escalation Policy",
+          "status": "Active",
+          "source_file": "DOC-001_operational_escalation_policy.pdf",
+          "version": "1.0",
+          "page": 2,
+          "evidence_text": "Operational escalation may be considered where sustained pressure is identified.",
+          "evidence_role": "supporting"
+        }
+      ],
+      "citation_index": [
+        {
+          "citation_id": "E1",
+          "evidence_id": "EVIDENCE::DOC-001-V1.0-P002-C001",
+          "document_id": "DOC-001",
+          "chunk_id": "DOC-001-V1.0-P002-C001",
+          "page": 2,
+          "source_file": "DOC-001_operational_escalation_policy.pdf",
+          "version": "1.0",
+          "status": "Active"
+        }
+      ],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "Escalation is definitely required.",
+          "citation": {
+            "document_id": "DOC-001",
+            "chunk_id": "DOC-001-V1.0-P002-C001"
+          },
+          "expected_support_status": "PARTIALLY_SUPPORTED",
+          "supporting_evidence_ids": [
+            "EVIDENCE::DOC-001-V1.0-P002-C001"
+          ],
+          "required_citation_ids": [
+            "E1"
+          ]
+        }
+      ],
+      "required_citation_ids": [
+        "E1"
+      ],
+      "allowed_citation_ids": [
+        "E1"
+      ],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [
+        "Escalation is definitely required."
+      ],
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "requires_human_review": true,
+      "conflict_expected": false,
+      "uncertainty_expected": true,
+      "abstention_expected": false,
+      "expected_overall_faithfulness_status": "FAIL",
+      "benchmark_tags": [
+        "uncertainty",
+        "overstatement",
+        "faithfulness",
+        "adversarial"
+      ]
+    },
+    {
+      "case_id": "W25-C015",
+      "case_name": "review_required_becomes_authoritative",
+      "description": "Upstream governance requires review but a candidate answer attempts to issue a final operational decision.",
+      "question": "What final action should leadership take?",
+      "expected_governance_decision": "REVIEW_REQUIRED",
+      "expected_response_type": "REVIEW",
+      "evidence_items": [
+        {
+          "evidence_id": "EVIDENCE::DOC-001-V1.0-P002-C001",
+          "document_id": "DOC-001",
+          "chunk_id": "DOC-001-V1.0-P002-C001",
+          "title": "Operational Escalation Policy",
+          "status": "Active",
+          "source_file": "DOC-001_operational_escalation_policy.pdf",
+          "version": "1.0",
+          "page": 2,
+          "evidence_text": "Operational escalation may be considered where sustained pressure is identified.",
+          "evidence_role": "supporting"
+        }
+      ],
+      "citation_index": [
+        {
+          "citation_id": "E1",
+          "evidence_id": "EVIDENCE::DOC-001-V1.0-P002-C001",
+          "document_id": "DOC-001",
+          "chunk_id": "DOC-001-V1.0-P002-C001",
+          "page": 2,
+          "source_file": "DOC-001_operational_escalation_policy.pdf",
+          "version": "1.0",
+          "status": "Active"
+        }
+      ],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "Leadership must initiate escalation immediately.",
+          "citation": {
+            "document_id": "DOC-001",
+            "chunk_id": "DOC-001-V1.0-P002-C001"
+          },
+          "expected_support_status": "PARTIALLY_SUPPORTED",
+          "supporting_evidence_ids": [
+            "EVIDENCE::DOC-001-V1.0-P002-C001"
+          ],
+          "required_citation_ids": [
+            "E1"
+          ]
+        }
+      ],
+      "required_citation_ids": [
+        "E1"
+      ],
+      "allowed_citation_ids": [
+        "E1"
+      ],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [
+        "Leadership must initiate escalation immediately."
+      ],
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "requires_human_review": true,
+      "conflict_expected": false,
+      "uncertainty_expected": true,
+      "abstention_expected": false,
+      "expected_overall_faithfulness_status": "FAIL",
+      "benchmark_tags": [
+        "review",
+        "authority",
+        "governance",
+        "adversarial"
+      ]
+    },
+    {
+      "case_id": "W25-C016",
+      "case_name": "missing_evidence_requires_abstain",
+      "description": "No approved evidence is available for the requested topic.",
+      "question": "What is the approved cybersecurity incident response for this organisation?",
+      "expected_governance_decision": "ABSTAIN",
+      "expected_response_type": "ABSTENTION",
+      "evidence_items": [],
+      "citation_index": [],
+      "expected_claims": [],
+      "required_citation_ids": [],
+      "allowed_citation_ids": [],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [
+        "The organisation should follow a specific cybersecurity response."
+      ],
+      "expected_verification_decision": "ABSTAIN",
+      "expected_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "requires_human_review": false,
+      "conflict_expected": false,
+      "uncertainty_expected": true,
+      "abstention_expected": true,
+      "expected_overall_faithfulness_status": "PASS",
+      "benchmark_tags": [
+        "abstention",
+        "missing_evidence",
+        "governance"
+      ]
+    },
+    {
+      "case_id": "W25-C017",
+      "case_name": "abstain_contains_substantive_advice",
+      "description": "The response retains an abstention structure but introduces substantive operational advice.",
+      "question": "What is the approved cybersecurity incident response for this organisation?",
+      "expected_governance_decision": "ABSTAIN",
+      "expected_response_type": "ABSTENTION",
+      "evidence_items": [],
+      "citation_index": [],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "You should immediately implement a cybersecurity response.",
+          "citation": null,
+          "expected_support_status": "UNSUPPORTED",
+          "supporting_evidence_ids": [],
+          "required_citation_ids": []
+        }
+      ],
+      "required_citation_ids": [],
+      "allowed_citation_ids": [],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [
+        "You should immediately implement a cybersecurity response."
+      ],
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "REVIEW_BEFORE_COMBINATION",
+      "requires_human_review": false,
+      "conflict_expected": false,
+      "uncertainty_expected": true,
+      "abstention_expected": true,
+      "expected_overall_faithfulness_status": "FAIL",
+      "benchmark_tags": [
+        "abstention",
+        "adversarial",
+        "authority",
+        "governance"
+      ]
+    },
+    {
+      "case_id": "W25-C018",
+      "case_name": "fabricated_threshold",
+      "description": "The candidate answer invents a numerical threshold not present in approved evidence.",
+      "question": "At what exact occupancy percentage must escalation begin?",
+      "expected_governance_decision": "AUTO_ANSWER",
+      "expected_response_type": "ANSWER",
+      "evidence_items": [
+        {
+          "evidence_id": "EVIDENCE::DOC-001-V1.0-P002-C001",
+          "document_id": "DOC-001",
+          "chunk_id": "DOC-001-V1.0-P002-C001",
+          "title": "Operational Escalation Policy",
+          "status": "Active",
+          "source_file": "DOC-001_operational_escalation_policy.pdf",
+          "version": "1.0",
+          "page": 2,
+          "evidence_text": "Escalation triggers may include sustained bed occupancy pressure.",
+          "evidence_role": "supporting"
+        }
+      ],
+      "citation_index": [
+        {
+          "citation_id": "E1",
+          "evidence_id": "EVIDENCE::DOC-001-V1.0-P002-C001",
+          "document_id": "DOC-001",
+          "chunk_id": "DOC-001-V1.0-P002-C001",
+          "page": 2,
+          "source_file": "DOC-001_operational_escalation_policy.pdf",
+          "version": "1.0",
+          "status": "Active"
+        }
+      ],
+      "expected_claims": [
+        {
+          "claim_id": "C1",
+          "claim_text": "Escalation must begin when bed occupancy reaches 95 percent.",
+          "citation": {
+            "document_id": "DOC-001",
+            "chunk_id": "DOC-001-V1.0-P002-C001"
+          },
+          "expected_support_status": "PARTIALLY_SUPPORTED",
+          "supporting_evidence_ids": [
+            "EVIDENCE::DOC-001-V1.0-P002-C001"
+          ],
+          "required_citation_ids": [
+            "E1"
+          ]
+        }
+      ],
+      "required_citation_ids": [
+        "E1"
+      ],
+      "allowed_citation_ids": [
+        "E1"
+      ],
+      "forbidden_citation_ids": [],
+      "forbidden_claims": [
+        "Escalation must begin when bed occupancy reaches 95 percent."
+      ],
+      "expected_verification_decision": "REVIEW_REQUIRED",
+      "expected_precedence_decision": "SAFE_TO_COMBINE",
+      "requires_human_review": true,
+      "conflict_expected": false,
+      "uncertainty_expected": true,
+      "abstention_expected": false,
+      "expected_overall_faithfulness_status": "FAIL",
+      "benchmark_tags": [
+        "unsupported_claim",
+        "numerical_claim",
+        "high_risk_mismatch",
+        "hallucination",
+        "adversarial"
+      ]
+    }
+  ]
+}
