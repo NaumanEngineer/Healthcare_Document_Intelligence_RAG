@@ -176,6 +176,13 @@ def _valid_abstain_output() -> dict:
             "reason": (
                 "No approved cybersecurity evidence is available."
             ),
+            "missing_information": (
+                "Approved cybersecurity guidance is not available "
+                "in the evidence base."
+            ),
+            "what_is_needed_to_continue": (
+                "Additional approved cybersecurity evidence is required."
+            ),
         },
         "citations_used": [],
         "model_safety_notes": [],

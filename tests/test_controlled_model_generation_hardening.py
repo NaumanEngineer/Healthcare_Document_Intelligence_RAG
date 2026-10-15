@@ -348,6 +348,15 @@ def test_abstain_wrong_generation_status_fails_closed() -> None:
             "unable_to_answer_safely": (
                 "The evidence base is insufficient."
             ),
+            "reason": (
+                "No approved evidence supports a substantive answer."
+            ),
+            "missing_information": (
+                "Approved evidence for the requested topic is missing."
+            ),
+            "what_is_needed_to_continue": (
+                "Additional approved evidence is required."
+            ),
         },
         "citations_used": [],
         "model_safety_notes": [],
