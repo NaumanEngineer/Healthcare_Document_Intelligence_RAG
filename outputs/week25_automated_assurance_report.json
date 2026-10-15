@@ -1,7 +1,7 @@
 {
   "report_name": "Week 25 Automated Assurance Report",
   "report_version": "1.1",
-  "generated_at_utc": "2026-10-15T13:47:46.158367+00:00",
+  "generated_at_utc": "2026-10-15T14:08:16.728627+00:00",
   "overall_status": "PASS",
   "benchmark": {
     "benchmark_name": "Week 25 Citation and Faithfulness Benchmark",
@@ -16,18 +16,18 @@
       "case_count": 18,
       "governance_counts": {
         "ABSTAIN": 2,
-        "AUTO_ANSWER": 10,
-        "REVIEW_REQUIRED": 6
+        "REVIEW_REQUIRED": 6,
+        "AUTO_ANSWER": 10
       },
       "verification_counts": {
         "ABSTAIN": 1,
-        "PASS": 4,
-        "REVIEW_REQUIRED": 13
+        "REVIEW_REQUIRED": 13,
+        "PASS": 4
       },
       "overall_status_counts": {
-        "PASS_WITH_WARNINGS": 0,
+        "FAIL": 12,
         "PASS": 6,
-        "FAIL": 12
+        "PASS_WITH_WARNINGS": 0
       },
       "human_review_count": 14,
       "validation_status": "PASS"
@@ -37,18 +37,18 @@
     "case_count": 18,
     "governance_counts": {
       "ABSTAIN": 2,
-      "AUTO_ANSWER": 10,
-      "REVIEW_REQUIRED": 6
+      "REVIEW_REQUIRED": 6,
+      "AUTO_ANSWER": 10
     },
     "verification_counts": {
       "ABSTAIN": 1,
-      "PASS": 4,
-      "REVIEW_REQUIRED": 13
+      "REVIEW_REQUIRED": 13,
+      "PASS": 4
     },
     "overall_status_counts": {
-      "PASS_WITH_WARNINGS": 0,
+      "FAIL": 12,
       "PASS": 6,
-      "FAIL": 12
+      "PASS_WITH_WARNINGS": 0
     },
     "human_review_count": 14,
     "validation_status": "PASS"
