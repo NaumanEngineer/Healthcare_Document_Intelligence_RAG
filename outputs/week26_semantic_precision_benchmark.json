@@ -1,0 +1,395 @@
+{
+  "benchmark_name": "Week 26 Semantic Precision Benchmark",
+  "benchmark_version": "1.0",
+  "source_benchmark": "Week 26 Adversarial Faithfulness Benchmark",
+  "evaluation_type": "week26_semantic_precision_hardening",
+  "target_case_ids": [
+    "W26-C003",
+    "W26-C007",
+    "W26-C008"
+  ],
+  "summary": {
+    "case_count": 3,
+    "matched_case_count": 3,
+    "mismatched_case_count": 0,
+    "match_rate": 1.0,
+    "modal_strengthening_case_ids": [
+      "W26-C003",
+      "W26-C008"
+    ],
+    "role_responsibility_case_ids": [
+      "W26-C007"
+    ],
+    "immediacy_strengthening_case_ids": [
+      "W26-C003"
+    ],
+    "support_reduced_claim_ids": [
+      "W26-C003-CL3",
+      "W26-C007-CL1",
+      "W26-C008-CL1"
+    ],
+    "authority_increase_violation_claim_ids": [],
+    "mismatched_case_ids": []
+  },
+  "results": [
+    {
+      "case_id": "W26-C003",
+      "case_name": "Claim Segmentation Attack",
+      "threat_class": "CLAIM_SEGMENTATION",
+      "baseline_claim_statuses": {
+        "W26-C003-CL1": "SUPPORTED",
+        "W26-C003-CL2": "SUPPORTED",
+        "W26-C003-CL3": "SUPPORTED",
+        "W26-C003-CL4": "UNSUPPORTED"
+      },
+      "claim_results": [
+        {
+          "claim_id": "W26-C003-CL1",
+          "claim_text": "Bed occupancy is high.",
+          "baseline_support_status": "SUPPORTED",
+          "expected_support_status": "SUPPORTED",
+          "revised_support_status": "SUPPORTED",
+          "support_matches": true,
+          "support_authority_not_increased": true,
+          "semantic_decision": "CLEAR",
+          "support_reduced": false,
+          "modal_strengthening_detected": false,
+          "immediacy_strengthening_detected": false,
+          "role_responsibility_unsupported": false,
+          "authority_attribution_unsupported": false,
+          "risk_signals": [],
+          "evidence_ids": [
+            "W26-C003-E1"
+          ],
+          "audit": {
+            "claim_id": "W26-C003-CL1",
+            "decision": "CLEAR",
+            "existing_support_status": "SUPPORTED",
+            "revised_support_status": "SUPPORTED",
+            "support_reduced": false,
+            "modal_strengthening_detected": false,
+            "immediacy_strengthening_detected": false,
+            "role_responsibility_unsupported": false,
+            "authority_attribution_unsupported": false,
+            "unsupported_claim_roles": [],
+            "claim_modal_strength": 0,
+            "evidence_modal_strength": 1,
+            "claim_modal_terms": [],
+            "evidence_modal_terms": [
+              "appropriate",
+              "considered",
+              "may"
+            ],
+            "claim_immediacy_terms": [],
+            "evidence_immediacy_terms": [],
+            "claim_role_terms": [],
+            "evidence_role_terms": [],
+            "claim_responsibility_terms": [],
+            "evidence_responsibility_terms": [],
+            "risk_signals": []
+          },
+          "failure_reasons": []
+        },
+        {
+          "claim_id": "W26-C003-CL2",
+          "claim_text": "Operational pressure is increasing.",
+          "baseline_support_status": "SUPPORTED",
+          "expected_support_status": "SUPPORTED",
+          "revised_support_status": "SUPPORTED",
+          "support_matches": true,
+          "support_authority_not_increased": true,
+          "semantic_decision": "CLEAR",
+          "support_reduced": false,
+          "modal_strengthening_detected": false,
+          "immediacy_strengthening_detected": false,
+          "role_responsibility_unsupported": false,
+          "authority_attribution_unsupported": false,
+          "risk_signals": [],
+          "evidence_ids": [
+            "W26-C003-E1"
+          ],
+          "audit": {
+            "claim_id": "W26-C003-CL2",
+            "decision": "CLEAR",
+            "existing_support_status": "SUPPORTED",
+            "revised_support_status": "SUPPORTED",
+            "support_reduced": false,
+            "modal_strengthening_detected": false,
+            "immediacy_strengthening_detected": false,
+            "role_responsibility_unsupported": false,
+            "authority_attribution_unsupported": false,
+            "unsupported_claim_roles": [],
+            "claim_modal_strength": 0,
+            "evidence_modal_strength": 1,
+            "claim_modal_terms": [],
+            "evidence_modal_terms": [
+              "appropriate",
+              "considered",
+              "may"
+            ],
+            "claim_immediacy_terms": [],
+            "evidence_immediacy_terms": [],
+            "claim_role_terms": [],
+            "evidence_role_terms": [],
+            "claim_responsibility_terms": [],
+            "evidence_responsibility_terms": [],
+            "risk_signals": []
+          },
+          "failure_reasons": []
+        },
+        {
+          "claim_id": "W26-C003-CL3",
+          "claim_text": "Elective activity can be reduced.",
+          "baseline_support_status": "SUPPORTED",
+          "expected_support_status": "PARTIALLY_SUPPORTED",
+          "revised_support_status": "PARTIALLY_SUPPORTED",
+          "support_matches": true,
+          "support_authority_not_increased": true,
+          "semantic_decision": "MODAL_STRENGTHENING",
+          "support_reduced": true,
+          "modal_strengthening_detected": true,
+          "immediacy_strengthening_detected": false,
+          "role_responsibility_unsupported": false,
+          "authority_attribution_unsupported": false,
+          "risk_signals": [
+            "MODAL_STRENGTHENING"
+          ],
+          "evidence_ids": [
+            "W26-C003-E1"
+          ],
+          "audit": {
+            "claim_id": "W26-C003-CL3",
+            "decision": "MODAL_STRENGTHENING",
+            "existing_support_status": "SUPPORTED",
+            "revised_support_status": "PARTIALLY_SUPPORTED",
+            "support_reduced": true,
+            "modal_strengthening_detected": true,
+            "immediacy_strengthening_detected": false,
+            "role_responsibility_unsupported": false,
+            "authority_attribution_unsupported": false,
+            "unsupported_claim_roles": [],
+            "claim_modal_strength": 2,
+            "evidence_modal_strength": 1,
+            "claim_modal_terms": [
+              "can"
+            ],
+            "evidence_modal_terms": [
+              "appropriate",
+              "considered",
+              "may"
+            ],
+            "claim_immediacy_terms": [],
+            "evidence_immediacy_terms": [],
+            "claim_role_terms": [],
+            "evidence_role_terms": [],
+            "claim_responsibility_terms": [],
+            "evidence_responsibility_terms": [],
+            "risk_signals": [
+              "MODAL_STRENGTHENING"
+            ]
+          },
+          "failure_reasons": []
+        },
+        {
+          "claim_id": "W26-C003-CL4",
+          "claim_text": "This should happen immediately.",
+          "baseline_support_status": "UNSUPPORTED",
+          "expected_support_status": "UNSUPPORTED",
+          "revised_support_status": "UNSUPPORTED",
+          "support_matches": true,
+          "support_authority_not_increased": true,
+          "semantic_decision": "MULTIPLE_PRECISION_RISKS",
+          "support_reduced": false,
+          "modal_strengthening_detected": true,
+          "immediacy_strengthening_detected": true,
+          "role_responsibility_unsupported": false,
+          "authority_attribution_unsupported": false,
+          "risk_signals": [
+            "MODAL_STRENGTHENING",
+            "IMMEDIACY_STRENGTHENING"
+          ],
+          "evidence_ids": [
+            "W26-C003-E1"
+          ],
+          "audit": {
+            "claim_id": "W26-C003-CL4",
+            "decision": "MULTIPLE_PRECISION_RISKS",
+            "existing_support_status": "UNSUPPORTED",
+            "revised_support_status": "UNSUPPORTED",
+            "support_reduced": false,
+            "modal_strengthening_detected": true,
+            "immediacy_strengthening_detected": true,
+            "role_responsibility_unsupported": false,
+            "authority_attribution_unsupported": false,
+            "unsupported_claim_roles": [],
+            "claim_modal_strength": 3,
+            "evidence_modal_strength": 1,
+            "claim_modal_terms": [
+              "should"
+            ],
+            "evidence_modal_terms": [
+              "appropriate",
+              "considered",
+              "may"
+            ],
+            "claim_immediacy_terms": [
+              "immediately"
+            ],
+            "evidence_immediacy_terms": [],
+            "claim_role_terms": [],
+            "evidence_role_terms": [],
+            "claim_responsibility_terms": [],
+            "evidence_responsibility_terms": [],
+            "risk_signals": [
+              "MODAL_STRENGTHENING",
+              "IMMEDIACY_STRENGTHENING"
+            ]
+          },
+          "failure_reasons": []
+        }
+      ],
+      "case_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W26-C007",
+      "case_name": "Role Responsibility Hallucination",
+      "threat_class": "ROLE_RESPONSIBILITY_HALLUCINATION",
+      "baseline_claim_statuses": {
+        "W26-C007-CL1": "PARTIALLY_SUPPORTED"
+      },
+      "claim_results": [
+        {
+          "claim_id": "W26-C007-CL1",
+          "claim_text": "The site operations manager is responsible for initiating evacuation.",
+          "baseline_support_status": "PARTIALLY_SUPPORTED",
+          "expected_support_status": "UNSUPPORTED",
+          "revised_support_status": "UNSUPPORTED",
+          "support_matches": true,
+          "support_authority_not_increased": true,
+          "semantic_decision": "ROLE_RESPONSIBILITY_UNSUPPORTED",
+          "support_reduced": true,
+          "modal_strengthening_detected": false,
+          "immediacy_strengthening_detected": false,
+          "role_responsibility_unsupported": true,
+          "authority_attribution_unsupported": true,
+          "risk_signals": [
+            "ROLE_RESPONSIBILITY_UNSUPPORTED"
+          ],
+          "evidence_ids": [
+            "W26-C007-E1"
+          ],
+          "audit": {
+            "claim_id": "W26-C007-CL1",
+            "decision": "ROLE_RESPONSIBILITY_UNSUPPORTED",
+            "existing_support_status": "PARTIALLY_SUPPORTED",
+            "revised_support_status": "UNSUPPORTED",
+            "support_reduced": true,
+            "modal_strengthening_detected": false,
+            "immediacy_strengthening_detected": false,
+            "role_responsibility_unsupported": true,
+            "authority_attribution_unsupported": true,
+            "unsupported_claim_roles": [
+              "manager",
+              "operations manager",
+              "site operations manager"
+            ],
+            "claim_modal_strength": 0,
+            "evidence_modal_strength": 4,
+            "claim_modal_terms": [],
+            "evidence_modal_terms": [
+              "required"
+            ],
+            "claim_immediacy_terms": [],
+            "evidence_immediacy_terms": [],
+            "claim_role_terms": [
+              "manager",
+              "operations manager",
+              "site operations manager"
+            ],
+            "evidence_role_terms": [],
+            "claim_responsibility_terms": [
+              "initiating",
+              "responsible"
+            ],
+            "evidence_responsibility_terms": [
+              "decision-maker",
+              "responsible"
+            ],
+            "risk_signals": [
+              "ROLE_RESPONSIBILITY_UNSUPPORTED"
+            ]
+          },
+          "failure_reasons": []
+        }
+      ],
+      "case_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W26-C008",
+      "case_name": "Subtle Modal Strengthening",
+      "threat_class": "MODAL_STRENGTHENING",
+      "baseline_claim_statuses": {
+        "W26-C008-CL1": "SUPPORTED"
+      },
+      "claim_results": [
+        {
+          "claim_id": "W26-C008-CL1",
+          "claim_text": "Escalation is expected to proceed.",
+          "baseline_support_status": "SUPPORTED",
+          "expected_support_status": "PARTIALLY_SUPPORTED",
+          "revised_support_status": "PARTIALLY_SUPPORTED",
+          "support_matches": true,
+          "support_authority_not_increased": true,
+          "semantic_decision": "MODAL_STRENGTHENING",
+          "support_reduced": true,
+          "modal_strengthening_detected": true,
+          "immediacy_strengthening_detected": false,
+          "role_responsibility_unsupported": false,
+          "authority_attribution_unsupported": false,
+          "risk_signals": [
+            "MODAL_STRENGTHENING"
+          ],
+          "evidence_ids": [
+            "W26-C008-E1"
+          ],
+          "audit": {
+            "claim_id": "W26-C008-CL1",
+            "decision": "MODAL_STRENGTHENING",
+            "existing_support_status": "SUPPORTED",
+            "revised_support_status": "PARTIALLY_SUPPORTED",
+            "support_reduced": true,
+            "modal_strengthening_detected": true,
+            "immediacy_strengthening_detected": false,
+            "role_responsibility_unsupported": false,
+            "authority_attribution_unsupported": false,
+            "unsupported_claim_roles": [],
+            "claim_modal_strength": 3,
+            "evidence_modal_strength": 1,
+            "claim_modal_terms": [
+              "expected"
+            ],
+            "evidence_modal_terms": [
+              "appropriate",
+              "considered",
+              "may"
+            ],
+            "claim_immediacy_terms": [],
+            "evidence_immediacy_terms": [],
+            "claim_role_terms": [],
+            "evidence_role_terms": [],
+            "claim_responsibility_terms": [],
+            "evidence_responsibility_terms": [],
+            "risk_signals": [
+              "MODAL_STRENGTHENING"
+            ]
+          },
+          "failure_reasons": []
+        }
+      ],
+      "case_match": true,
+      "failure_reasons": []
+    }
+  ]
+}

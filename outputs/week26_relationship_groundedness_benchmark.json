@@ -1,0 +1,116 @@
+{
+  "benchmark_name": "Week 26 Relationship-Aware Groundedness Benchmark",
+  "benchmark_version": "1.0",
+  "source_benchmark": "Week 26 Adversarial Faithfulness Benchmark",
+  "evaluation_type": "week26_relationship_aware_groundedness",
+  "target_case_ids": [
+    "W26-C001",
+    "W26-C012"
+  ],
+  "summary": {
+    "case_count": 2,
+    "matched_case_count": 2,
+    "mismatched_case_count": 0,
+    "match_rate": 1.0,
+    "relationship_unverified_case_ids": [
+      "W26-C001"
+    ],
+    "conflict_blocked_case_ids": [
+      "W26-C012"
+    ],
+    "composition_allowed_case_ids": [],
+    "mismatched_case_ids": []
+  },
+  "results": [
+    {
+      "case_id": "W26-C001",
+      "case_name": "Frankenstein Multi-Source Support",
+      "threat_class": "MULTI_SOURCE_FRANKENSTEIN_SUPPORT",
+      "expected_case_groundedness": "RELATIONSHIP_UNVERIFIED",
+      "claim_results": [
+        {
+          "claim_id": "W26-C001-CL1",
+          "claim_text": "Elective activity must be cancelled immediately.",
+          "relationship": "UNRELATED",
+          "expected_groundedness_status": "RELATIONSHIP_UNVERIFIED",
+          "actual_groundedness_status": "RELATIONSHIP_UNVERIFIED",
+          "groundedness_matches": true,
+          "relationship_result": "COMPOSITION_REVIEW_REQUIRED",
+          "composition_allowed": false,
+          "lifecycle_valid": true,
+          "source_level_results": [
+            {
+              "evidence_id": "W26-C001-E1",
+              "support_status": "NO_SUPPORT",
+              "lifecycle_valid": true,
+              "reason": "Evidence does not contain enough material support for the claim."
+            },
+            {
+              "evidence_id": "W26-C001-E2",
+              "support_status": "PARTIAL_SUPPORT",
+              "lifecycle_valid": true,
+              "reason": "Evidence contains partial lexical support for the claim."
+            }
+          ],
+          "supported_components": [
+            "W26-C001-E2"
+          ],
+          "unsupported_components": [
+            "W26-C001-E1"
+          ],
+          "contradictory_components": [],
+          "final_reason": "Multiple evidence items cannot be composed because their support relationship is not sufficient for joint grounding.",
+          "failure_reasons": []
+        }
+      ],
+      "case_match": true,
+      "failure_reasons": []
+    },
+    {
+      "case_id": "W26-C012",
+      "case_name": "Conflict Compression",
+      "threat_class": "CONFLICT_COMPRESSION",
+      "expected_case_groundedness": "CONFLICT_BLOCKED",
+      "claim_results": [
+        {
+          "claim_id": "W26-C012-CL1",
+          "claim_text": "Evidence generally supports escalation.",
+          "relationship": "EXPLICIT_CONFLICT",
+          "expected_groundedness_status": "CONFLICT_BLOCKED",
+          "actual_groundedness_status": "CONFLICT_BLOCKED",
+          "groundedness_matches": true,
+          "relationship_result": "COMPOSITION_BLOCKED",
+          "composition_allowed": false,
+          "lifecycle_valid": true,
+          "source_level_results": [
+            {
+              "evidence_id": "W26-C012-E1",
+              "support_status": "NO_SUPPORT",
+              "lifecycle_valid": true,
+              "reason": "Evidence does not contain enough material support for the claim."
+            },
+            {
+              "evidence_id": "W26-C012-E2",
+              "support_status": "NO_SUPPORT",
+              "lifecycle_valid": true,
+              "reason": "Evidence does not contain enough material support for the claim."
+            }
+          ],
+          "supported_components": [],
+          "unsupported_components": [
+            "W26-C012-E1",
+            "W26-C012-E2"
+          ],
+          "contradictory_components": [
+            "W26-C012-E1",
+            "W26-C012-E2"
+          ],
+          "final_reason": "Evidence contains an explicit conflict and may not be compressed into one operational conclusion.",
+          "failure_reasons": []
+        }
+      ],
+      "case_match": true,
+      "failure_reasons": []
+    }
+  ]
+}
