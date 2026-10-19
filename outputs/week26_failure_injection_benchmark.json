@@ -1,0 +1,319 @@
+{
+  "benchmark_name": "Week 26 Failure Injection Benchmark",
+  "benchmark_version": "1.0",
+  "evaluation_type": "week26_fail_closed_robustness",
+  "summary": {
+    "case_count": 11,
+    "matched_case_count": 11,
+    "mismatched_case_count": 0,
+    "match_rate": 1.0,
+    "fail_closed_case_count": 10,
+    "fail_closed_case_ids": [
+      "W26-FI-001",
+      "W26-FI-002",
+      "W26-FI-003",
+      "W26-FI-004",
+      "W26-FI-005",
+      "W26-FI-006",
+      "W26-FI-007",
+      "W26-FI-008",
+      "W26-FI-009",
+      "W26-FI-011"
+    ],
+    "unsafe_pass_case_ids": [],
+    "mismatched_case_ids": [],
+    "overall_status": "PASS"
+  },
+  "results": [
+    {
+      "case_id": "W26-FI-001",
+      "case_name": "invalid_record_type",
+      "expected_boundary_status": "FAIL_CLOSED",
+      "actual_boundary_status": "FAIL_CLOSED",
+      "expected_final_decision": "ABSTAIN",
+      "actual_final_decision": "ABSTAIN",
+      "expected_error_type": "INVALID_RECORD_TYPE",
+      "actual_error_type": "INVALID_RECORD_TYPE",
+      "never_unsafe_pass": true,
+      "case_match": true,
+      "failure_reasons": [],
+      "boundary_result": {
+        "case_id": "UNKNOWN_CASE",
+        "boundary_status": "FAIL_CLOSED",
+        "final_decision": "ABSTAIN",
+        "assurance_completed": false,
+        "authority_increased": false,
+        "error_type": "INVALID_RECORD_TYPE",
+        "reason": "System-safety record must be a dictionary.",
+        "underlying_result": null
+      }
+    },
+    {
+      "case_id": "W26-FI-002",
+      "case_name": "missing_case_id",
+      "expected_boundary_status": "FAIL_CLOSED",
+      "actual_boundary_status": "FAIL_CLOSED",
+      "expected_final_decision": "ABSTAIN",
+      "actual_final_decision": "ABSTAIN",
+      "expected_error_type": "INVALID_CASE_ID",
+      "actual_error_type": "INVALID_CASE_ID",
+      "never_unsafe_pass": true,
+      "case_match": true,
+      "failure_reasons": [],
+      "boundary_result": {
+        "case_id": "UNKNOWN_CASE",
+        "boundary_status": "FAIL_CLOSED",
+        "final_decision": "ABSTAIN",
+        "assurance_completed": false,
+        "authority_increased": false,
+        "error_type": "INVALID_CASE_ID",
+        "reason": "case_id is missing or blank.",
+        "underlying_result": null
+      }
+    },
+    {
+      "case_id": "W26-FI-003",
+      "case_name": "missing_upstream_decision",
+      "expected_boundary_status": "FAIL_CLOSED",
+      "actual_boundary_status": "FAIL_CLOSED",
+      "expected_final_decision": "ABSTAIN",
+      "actual_final_decision": "ABSTAIN",
+      "expected_error_type": "MISSING_UPSTREAM_DECISION",
+      "actual_error_type": "MISSING_UPSTREAM_DECISION",
+      "never_unsafe_pass": true,
+      "case_match": true,
+      "failure_reasons": [],
+      "boundary_result": {
+        "case_id": "W26-FI-003",
+        "boundary_status": "FAIL_CLOSED",
+        "final_decision": "ABSTAIN",
+        "assurance_completed": false,
+        "authority_increased": false,
+        "error_type": "MISSING_UPSTREAM_DECISION",
+        "reason": "upstream_decision is missing.",
+        "underlying_result": null
+      }
+    },
+    {
+      "case_id": "W26-FI-004",
+      "case_name": "missing_final_decision",
+      "expected_boundary_status": "FAIL_CLOSED",
+      "actual_boundary_status": "FAIL_CLOSED",
+      "expected_final_decision": "ABSTAIN",
+      "actual_final_decision": "ABSTAIN",
+      "expected_error_type": "MISSING_FINAL_DECISION",
+      "actual_error_type": "MISSING_FINAL_DECISION",
+      "never_unsafe_pass": true,
+      "case_match": true,
+      "failure_reasons": [],
+      "boundary_result": {
+        "case_id": "W26-FI-004",
+        "boundary_status": "FAIL_CLOSED",
+        "final_decision": "ABSTAIN",
+        "assurance_completed": false,
+        "authority_increased": false,
+        "error_type": "MISSING_FINAL_DECISION",
+        "reason": "final_decision is missing.",
+        "underlying_result": null
+      }
+    },
+    {
+      "case_id": "W26-FI-005",
+      "case_name": "missing_signals",
+      "expected_boundary_status": "FAIL_CLOSED",
+      "actual_boundary_status": "FAIL_CLOSED",
+      "expected_final_decision": "ABSTAIN",
+      "actual_final_decision": "ABSTAIN",
+      "expected_error_type": "MISSING_SIGNALS",
+      "actual_error_type": "MISSING_SIGNALS",
+      "never_unsafe_pass": true,
+      "case_match": true,
+      "failure_reasons": [],
+      "boundary_result": {
+        "case_id": "W26-FI-005",
+        "boundary_status": "FAIL_CLOSED",
+        "final_decision": "ABSTAIN",
+        "assurance_completed": false,
+        "authority_increased": false,
+        "error_type": "MISSING_SIGNALS",
+        "reason": "signals are missing.",
+        "underlying_result": null
+      }
+    },
+    {
+      "case_id": "W26-FI-006",
+      "case_name": "unknown_upstream_decision",
+      "expected_boundary_status": "FAIL_CLOSED",
+      "actual_boundary_status": "FAIL_CLOSED",
+      "expected_final_decision": "ABSTAIN",
+      "actual_final_decision": "ABSTAIN",
+      "expected_error_type": "UNKNOWN_UPSTREAM_DECISION",
+      "actual_error_type": "UNKNOWN_UPSTREAM_DECISION",
+      "never_unsafe_pass": true,
+      "case_match": true,
+      "failure_reasons": [],
+      "boundary_result": {
+        "case_id": "W26-FI-006",
+        "boundary_status": "FAIL_CLOSED",
+        "final_decision": "ABSTAIN",
+        "assurance_completed": false,
+        "authority_increased": false,
+        "error_type": "UNKNOWN_UPSTREAM_DECISION",
+        "reason": "Unknown upstream assurance decision: 'AUTO_MAGIC'.",
+        "underlying_result": null
+      }
+    },
+    {
+      "case_id": "W26-FI-007",
+      "case_name": "unknown_final_decision",
+      "expected_boundary_status": "FAIL_CLOSED",
+      "actual_boundary_status": "FAIL_CLOSED",
+      "expected_final_decision": "ABSTAIN",
+      "actual_final_decision": "ABSTAIN",
+      "expected_error_type": "UNKNOWN_FINAL_DECISION",
+      "actual_error_type": "UNKNOWN_FINAL_DECISION",
+      "never_unsafe_pass": true,
+      "case_match": true,
+      "failure_reasons": [],
+      "boundary_result": {
+        "case_id": "W26-FI-007",
+        "boundary_status": "FAIL_CLOSED",
+        "final_decision": "ABSTAIN",
+        "assurance_completed": false,
+        "authority_increased": false,
+        "error_type": "UNKNOWN_FINAL_DECISION",
+        "reason": "Unknown final assurance decision: 'SAFE_ENOUGH'.",
+        "underlying_result": null
+      }
+    },
+    {
+      "case_id": "W26-FI-008",
+      "case_name": "malformed_signals",
+      "expected_boundary_status": "FAIL_CLOSED",
+      "actual_boundary_status": "FAIL_CLOSED",
+      "expected_final_decision": "ABSTAIN",
+      "actual_final_decision": "ABSTAIN",
+      "expected_error_type": "INVALID_SIGNALS_TYPE",
+      "actual_error_type": "INVALID_SIGNALS_TYPE",
+      "never_unsafe_pass": true,
+      "case_match": true,
+      "failure_reasons": [],
+      "boundary_result": {
+        "case_id": "W26-FI-008",
+        "boundary_status": "FAIL_CLOSED",
+        "final_decision": "ABSTAIN",
+        "assurance_completed": false,
+        "authority_increased": false,
+        "error_type": "INVALID_SIGNALS_TYPE",
+        "reason": "signals must be a dictionary.",
+        "underlying_result": null
+      }
+    },
+    {
+      "case_id": "W26-FI-009",
+      "case_name": "blank_case_id",
+      "expected_boundary_status": "FAIL_CLOSED",
+      "actual_boundary_status": "FAIL_CLOSED",
+      "expected_final_decision": "ABSTAIN",
+      "actual_final_decision": "ABSTAIN",
+      "expected_error_type": "INVALID_CASE_ID",
+      "actual_error_type": "INVALID_CASE_ID",
+      "never_unsafe_pass": true,
+      "case_match": true,
+      "failure_reasons": [],
+      "boundary_result": {
+        "case_id": "UNKNOWN_CASE",
+        "boundary_status": "FAIL_CLOSED",
+        "final_decision": "ABSTAIN",
+        "assurance_completed": false,
+        "authority_increased": false,
+        "error_type": "INVALID_CASE_ID",
+        "reason": "case_id is missing or blank.",
+        "underlying_result": null
+      }
+    },
+    {
+      "case_id": "W26-FI-010",
+      "case_name": "valid_control_record",
+      "expected_boundary_status": "NORMAL_ASSURANCE",
+      "actual_boundary_status": "NORMAL_ASSURANCE",
+      "expected_final_decision": "REVIEW_REQUIRED",
+      "actual_final_decision": "REVIEW_REQUIRED",
+      "expected_error_type": null,
+      "actual_error_type": null,
+      "never_unsafe_pass": true,
+      "case_match": true,
+      "failure_reasons": [],
+      "boundary_result": {
+        "case_id": "W26-FI-010",
+        "boundary_status": "NORMAL_ASSURANCE",
+        "final_decision": "REVIEW_REQUIRED",
+        "assurance_completed": true,
+        "authority_increased": false,
+        "error_type": null,
+        "reason": "System-safety assurance completed.",
+        "underlying_result": {
+          "case_id": "W26-FI-010",
+          "status": "INVARIANT_PASS",
+          "upstream_decision": "PASS",
+          "final_decision": "REVIEW_REQUIRED",
+          "upstream_authority_level": 2,
+          "final_authority_level": 1,
+          "unsafe_signal_present": true,
+          "signals": {
+            "prompt_injection_detected": true
+          },
+          "checks": {
+            "authority_not_increased": true,
+            "unsafe_signal_not_passed": true,
+            "upstream_abstain_preserved": true,
+            "review_not_upgraded_to_pass": true,
+            "abstention_violation_preserves_abstain": true,
+            "prompt_injection_not_passed": true,
+            "conflict_not_passed": true,
+            "unsafe_temporal_evidence_not_passed": true,
+            "unsupported_high_risk_claim_not_passed": true
+          },
+          "failed_invariants": []
+        }
+      }
+    },
+    {
+      "case_id": "W26-FI-011",
+      "case_name": "invalid_collection_type",
+      "expected_boundary_status": "FAIL_CLOSED",
+      "actual_boundary_status": "FAIL_CLOSED",
+      "expected_final_decision": "ABSTAIN",
+      "actual_final_decision": "ABSTAIN",
+      "expected_error_type": "INVALID_COLLECTION_TYPE",
+      "actual_error_type": "INVALID_COLLECTION_TYPE",
+      "never_unsafe_pass": true,
+      "case_match": true,
+      "failure_reasons": [],
+      "boundary_result": {
+        "record_count": 1,
+        "normal_assurance_count": 0,
+        "fail_closed_count": 1,
+        "pass_decision_count": 0,
+        "review_decision_count": 0,
+        "abstain_decision_count": 1,
+        "fail_closed_case_ids": [
+          "UNKNOWN_CASE"
+        ],
+        "overall_status": "FAIL_CLOSED",
+        "results": [
+          {
+            "case_id": "UNKNOWN_CASE",
+            "boundary_status": "FAIL_CLOSED",
+            "final_decision": "ABSTAIN",
+            "assurance_completed": false,
+            "authority_increased": false,
+            "error_type": "INVALID_COLLECTION_TYPE",
+            "reason": "System-safety record collection must be a list.",
+            "underlying_result": null
+          }
+        ]
+      }
+    }
+  ]
+}

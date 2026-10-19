@@ -1,0 +1,41 @@
+{
+  "report_name": "Week 26 Operational Assurance Gate",
+  "report_version": "1.0",
+  "overall_status": "PASS",
+  "adversarial_assurance": {
+    "status": "PASS",
+    "case_count": 12,
+    "matched_case_count": 12,
+    "mismatched_case_count": 0,
+    "mismatched_case_ids": []
+  },
+  "system_safety": {
+    "status": "PASS",
+    "case_count": 12,
+    "passed_case_count": 12,
+    "failed_case_count": 0,
+    "failed_case_ids": []
+  },
+  "failure_injection": {
+    "status": "PASS",
+    "case_count": 11,
+    "matched_case_count": 11,
+    "mismatched_case_count": 0,
+    "fail_closed_case_count": 10,
+    "unsafe_pass_case_ids": [],
+    "mismatched_case_ids": []
+  },
+  "gate": {
+    "overall_status": "PASS",
+    "checks": {
+      "adversarial_assurance_passes": true,
+      "system_safety_passes": true,
+      "failure_injection_passes": true,
+      "adversarial_has_no_mismatches": true,
+      "system_safety_has_no_failures": true,
+      "failure_injection_has_no_unsafe_pass": true,
+      "failure_injection_has_no_mismatches": true
+    },
+    "failed_checks": []
+  }
+}
