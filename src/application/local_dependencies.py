@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 from src.application.app_dependencies import (
     AppDependencies,
 )
@@ -55,82 +57,95 @@ class LocalDependencySettings:
 
 
 class LocalDeterministicEmbeddingModel:
-    """Minimal deterministic embedding adapter for local execution."""
+    """Minimal deterministic embedding adapter for local execution.
+
+    The adapter intentionally mirrors the part of the SentenceTransformer
+    interface used by the existing retrieval layer.
+
+    In particular, encode() returns a NumPy array so downstream code may call
+    .tolist() exactly as it does with the production embedding model.
+    """
 
     model_name = (
         DEFAULT_LOCAL_EMBEDDING_MODEL_NAME
     )
 
+    def _encode_one(
+        self,
+        text: str,
+    ) -> list[float]:
+        if not isinstance(
+            text,
+            str,
+        ):
+            raise ValueError(
+                "embedding input must be a string."
+            )
+
+        length = float(
+            len(
+                text
+            )
+        )
+
+        checksum = float(
+            sum(
+                ord(
+                    character
+                )
+                for character
+                in text
+            )
+            % 1000
+        )
+
+        word_count = float(
+            len(
+                text.split()
+            )
+        )
+
+        return [
+            length,
+            checksum,
+            word_count,
+        ]
+
     def encode(
         self,
         texts: Any,
         **_: Any,
-    ) -> list[list[float]]:
+    ) -> np.ndarray:
         if isinstance(
             texts,
             str,
         ):
-            source = [
-                texts
-            ]
+            return np.asarray(
+                self._encode_one(
+                    texts
+                ),
+                dtype=float,
+            )
 
-        elif isinstance(
+        if isinstance(
             texts,
             list,
         ):
-            source = texts
-
-        else:
-            raise ValueError(
-                "texts must be a string or list."
-            )
-
-        output: list[
-            list[float]
-        ] = []
-
-        for text in source:
-            if not isinstance(
-                text,
-                str,
-            ):
-                raise ValueError(
-                    "embedding input must contain "
-                    "strings only."
-                )
-
-            length = float(
-                len(
+            vectors = [
+                self._encode_one(
                     text
                 )
+                for text in texts
+            ]
+
+            return np.asarray(
+                vectors,
+                dtype=float,
             )
 
-            checksum = float(
-                sum(
-                    ord(
-                        character
-                    )
-                    for character
-                    in text
-                )
-                % 1000
-            )
-
-            word_count = float(
-                len(
-                    text.split()
-                )
-            )
-
-            output.append(
-                [
-                    length,
-                    checksum,
-                    word_count,
-                ]
-            )
-
-        return output
+        raise ValueError(
+            "texts must be a string or list."
+        )
 
 
 def _validate_runtime_config(

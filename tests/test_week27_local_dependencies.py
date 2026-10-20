@@ -1,8 +1,9 @@
 from pathlib import Path
 
+import numpy as np
 import pytest
 
-from src.application.app import (
+from src.application.app_dependencies import (
     AppDependencies,
 )
 from src.application.local_dependencies import (
@@ -88,18 +89,48 @@ def test_local_embedding_model_encodes_string():
         LocalDeterministicEmbeddingModel()
     )
 
-    vectors = model.encode(
+    vector = model.encode(
         "hello world"
     )
 
-    assert len(
-        vectors
-    ) == 1
+    assert isinstance(
+        vector,
+        np.ndarray,
+    )
+
+    assert (
+        vector.ndim
+        == 1
+    )
+
+    assert (
+        len(
+            vector
+        )
+        == 3
+    )
+
+
+def test_local_embedding_model_string_supports_tolist():
+    model = (
+        LocalDeterministicEmbeddingModel()
+    )
+
+    vector = model.encode(
+        "hello world"
+    )
+
+    converted = (
+        vector.tolist()
+    )
+
+    assert isinstance(
+        converted,
+        list,
+    )
 
     assert len(
-        vectors[
-            0
-        ]
+        converted
     ) == 3
 
 
@@ -115,9 +146,22 @@ def test_local_embedding_model_encodes_list():
         ]
     )
 
-    assert len(
-        vectors
-    ) == 2
+    assert isinstance(
+        vectors,
+        np.ndarray,
+    )
+
+    assert (
+        vectors.ndim
+        == 2
+    )
+
+    assert (
+        len(
+            vectors
+        )
+        == 2
+    )
 
 
 def test_local_embedding_model_is_deterministic():
@@ -137,7 +181,10 @@ def test_local_embedding_model_is_deterministic():
         ]
     )
 
-    assert first == second
+    assert np.array_equal(
+        first,
+        second,
+    )
 
 
 @pytest.mark.parametrize(
@@ -175,8 +222,8 @@ def test_local_embedding_model_rejects_non_string_list_member():
     with pytest.raises(
         ValueError,
         match=(
-            "embedding input must contain "
-            "strings only"
+            "embedding input must be "
+            "a string"
         ),
     ):
         model.encode(
