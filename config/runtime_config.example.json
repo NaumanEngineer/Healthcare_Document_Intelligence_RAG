@@ -1,0 +1,24 @@
+{
+  "assurance": {
+    "require_citation_assurance": true,
+    "require_faithfulness_assurance": true,
+    "require_prompt_injection_check": true,
+    "require_system_safety": true
+  },
+  "execution_mode": "DETERMINISTIC_ONLY",
+  "metadata": {
+    "application_name": "Healthcare Document Intelligence RAG",
+    "environment": "development",
+    "runtime_version": "week27-day3"
+  },
+  "retrieval": {
+    "final_k": 3,
+    "keyword_k": 10,
+    "keyword_min_score": null,
+    "max_related_chunks": 2,
+    "min_rrf_score": null,
+    "rrf_k": 60,
+    "semantic_k": 10,
+    "semantic_min_similarity": null
+  }
+}
