@@ -1,21 +1,22 @@
-"""Week 28 — three-outcome governed end-to-end demo runner.
+"""Week 28 — governed three-outcome portfolio demo runner.
 
-This runner demonstrates the existing governed Healthcare Document
-Intelligence RAG application across three naturally occurring outcomes:
+The runner executes three synthetic, non-patient operational scenarios through
+the canonical governed RAG application and then attaches the Week 28 Day 3
+manager-facing presentation layer.
 
-- ANSWER
-- REVIEW_REQUIRED
-- ABSTAIN
+The presentation layer is downstream only.
 
-Expected outcomes are verification targets only.
-
-They do not alter, override, or inject governance decisions.
+It does not change retrieval, evidence, governance, assurance, or the final
+application outcome.
 """
 
 from __future__ import annotations
 
 from copy import deepcopy
 
+from src.application.manager_response import (
+    build_manager_response,
+)
 from src.application.observed_rag_pipeline import (
     run_observed_rag_pipeline,
 )
@@ -37,19 +38,25 @@ QUERY_DATE = "2026-10-22"
 def _run_case(
     case: dict,
 ) -> dict:
-    """Run one synthetic Week 28 case through the canonical application."""
+    """Run one Week 28 demo case through the canonical application."""
 
-    case_id = case[
-        "case_id"
-    ]
+    case_id = (
+        case[
+            "case_id"
+        ]
+    )
 
-    question = case[
-        "question"
-    ]
+    question = (
+        case[
+            "question"
+        ]
+    )
 
-    expected_outcome = case[
-        "expected_outcome"
-    ]
+    expected_outcome = (
+        case[
+            "expected_outcome"
+        ]
+    )
 
     runtime_config = (
         RAGRuntimeConfig()
@@ -65,23 +72,42 @@ def _run_case(
     with temporary_week28_document_registration(
         case_id
     ):
-        result = run_observed_rag_pipeline(
-            question=question,
-            chunks=dependencies.chunks,
-            embedded_chunks=(
-                dependencies.embedded_chunks
-            ),
-            embedding_model=(
-                dependencies.embedding_model
-            ),
-            embedding_model_name=(
-                dependencies.embedding_model_name
-            ),
-            model_provider=(
-                dependencies.model_provider
-            ),
-            query_date=QUERY_DATE,
-            runtime_config=runtime_config,
+        result = (
+            run_observed_rag_pipeline(
+                question=question,
+                chunks=dependencies.chunks,
+                embedded_chunks=(
+                    dependencies.embedded_chunks
+                ),
+                embedding_model=(
+                    dependencies.embedding_model
+                ),
+                embedding_model_name=(
+                    dependencies.embedding_model_name
+                ),
+                model_provider=(
+                    dependencies.model_provider
+                ),
+                query_date=QUERY_DATE,
+                runtime_config=runtime_config,
+            )
+        )
+
+    governed_snapshot = (
+        deepcopy(
+            result
+        )
+    )
+
+    manager_response = (
+        build_manager_response(
+            result
+        )
+    )
+
+    if result != governed_snapshot:
+        raise ValueError(
+            "Manager presentation changed the governed result."
         )
 
     actual_outcome = (
@@ -131,11 +157,27 @@ def _run_case(
         == expected_outcome
     )
 
+    presentation_outcome_matches = (
+        manager_response.get(
+            "outcome"
+        )
+        == actual_outcome
+    )
+
+    authority_preserved = (
+        manager_response.get(
+            "authority_preserved"
+        )
+        is True
+    )
+
     return {
         "case_id": case_id,
-        "case_name": case[
-            "case_name"
-        ],
+        "case_name": (
+            case[
+                "case_name"
+            ]
+        ),
         "question": question,
         "expected_outcome": (
             expected_outcome
@@ -151,7 +193,18 @@ def _run_case(
             observability_status
         ),
         "observed_event_count": (
-            len(events)
+            len(
+                events
+            )
+        ),
+        "manager_response": (
+            manager_response
+        ),
+        "presentation_outcome_matches": (
+            presentation_outcome_matches
+        ),
+        "authority_preserved": (
+            authority_preserved
         ),
         "result": deepcopy(
             result
@@ -161,7 +214,7 @@ def _run_case(
 
 def run_week28_three_outcome_demo(
 ) -> dict:
-    """Execute all Week 28 portfolio cases."""
+    """Execute all Week 28 governed portfolio scenarios."""
 
     case_results = []
 
@@ -182,20 +235,56 @@ def run_week28_three_outcome_demo(
         ]
     )
 
+    presentation_match_count = sum(
+        1
+        for result in case_results
+        if result[
+            "presentation_outcome_matches"
+        ]
+    )
+
+    authority_preserved_count = sum(
+        1
+        for result in case_results
+        if result[
+            "authority_preserved"
+        ]
+    )
+
+    case_count = (
+        len(
+            case_results
+        )
+    )
+
     return {
         "demo_name": (
             "Week 28 Three-Outcome "
             "Governed RAG Demo"
         ),
         "case_count": (
-            len(case_results)
+            case_count
         ),
         "matched_case_count": (
             matched_count
         ),
+        "presentation_match_count": (
+            presentation_match_count
+        ),
+        "authority_preserved_count": (
+            authority_preserved_count
+        ),
         "all_cases_matched": (
             matched_count
-            == len(case_results)
+            == case_count
+        ),
+        "all_presentations_matched": (
+            presentation_match_count
+            == case_count
+        ),
+        "all_authority_preserved": (
+            authority_preserved_count
+            == case_count
         ),
         "results": (
             case_results
@@ -203,9 +292,84 @@ def run_week28_three_outcome_demo(
     }
 
 
+def _print_manager_response(
+    manager_response: dict,
+) -> None:
+    """Print safe manager-facing presentation fields."""
+
+    print()
+    print(
+        "Manager-facing response"
+    )
+
+    print(
+        "-----------------------"
+    )
+
+    print(
+        "Headline:",
+        manager_response[
+            "headline"
+        ],
+    )
+
+    print(
+        "Summary:",
+        manager_response[
+            "summary"
+        ],
+    )
+
+    print(
+        "Evidence basis:",
+        manager_response[
+            "evidence_basis"
+        ],
+    )
+
+    print(
+        "Confidence:",
+        manager_response[
+            "confidence_message"
+        ],
+    )
+
+    print(
+        "Next action:",
+        manager_response[
+            "next_action"
+        ],
+    )
+
+    print(
+        "Human review required:",
+        manager_response[
+            "human_review_required"
+        ],
+    )
+
+    print(
+        "Citation count:",
+        len(
+            manager_response[
+                "citations"
+            ]
+        ),
+    )
+
+    print(
+        "Authority preserved:",
+        manager_response[
+            "authority_preserved"
+        ],
+    )
+
+
 def _print_case_result(
     result: dict,
 ) -> None:
+    """Print one portfolio scenario."""
+
     print()
     print(
         result[
@@ -271,7 +435,7 @@ def _print_case_result(
     )
 
     print(
-        "Verification:",
+        "Governance verification:",
         (
             "PASS"
             if result[
@@ -281,8 +445,27 @@ def _print_case_result(
         ),
     )
 
+    print(
+        "Presentation verification:",
+        (
+            "PASS"
+            if result[
+                "presentation_outcome_matches"
+            ]
+            else "FAIL"
+        ),
+    )
+
+    _print_manager_response(
+        result[
+            "manager_response"
+        ]
+    )
+
 
 def main() -> int:
+    """Run the complete Week 28 portfolio demonstration."""
+
     report = (
         run_week28_three_outcome_demo()
     )
@@ -292,16 +475,18 @@ def main() -> int:
     )
 
     print(
-        "Week 28 Three-Outcome Governed Demo"
+        "Week 28 Governed Manager-Facing Demo"
     )
 
     print(
-        "====================================="
+        "===================================="
     )
 
-    for result in report[
-        "results"
-    ]:
+    for result in (
+        report[
+            "results"
+        ]
+    ):
         _print_case_result(
             result
         )
@@ -323,28 +508,50 @@ def main() -> int:
     )
 
     print(
-        "Matched:",
+        "Governance matched:",
         report[
             "matched_case_count"
         ],
     )
 
     print(
+        "Presentation matched:",
+        report[
+            "presentation_match_count"
+        ],
+    )
+
+    print(
+        "Authority preserved:",
+        report[
+            "authority_preserved_count"
+        ],
+    )
+
+    overall_pass = (
+        report[
+            "all_cases_matched"
+        ]
+        and report[
+            "all_presentations_matched"
+        ]
+        and report[
+            "all_authority_preserved"
+        ]
+    )
+
+    print(
         "Overall verification:",
         (
             "PASS"
-            if report[
-                "all_cases_matched"
-            ]
+            if overall_pass
             else "FAIL"
         ),
     )
 
     return (
         0
-        if report[
-            "all_cases_matched"
-        ]
+        if overall_pass
         else 1
     )
 
