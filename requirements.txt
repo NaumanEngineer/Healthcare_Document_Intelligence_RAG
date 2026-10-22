@@ -1,6 +1,25 @@
-pymupdf
-pytest
-sentence-transformers
-duckdb
-pyarrow
-rank-bm25
+# Healthcare Document Intelligence RAG
+#
+# Week 28 clean-start reproducibility baseline.
+# Validated on Python 3.14.1.
+#
+# This dependency set reproduced:
+# - Week 28 ANSWER / REVIEW_REQUIRED / ABSTAIN demo
+# - 59 focused Week 28 tests
+# - 1639 full repository tests
+#
+# Direct project dependencies are explicitly declared even where another
+# dependency could currently install them transitively.
+
+duckdb==2.0.0
+numpy==2.4.1
+pyarrow==26.0.0
+PyMuPDF==1.28.2
+rank-bm25==0.2.2
+scikit-learn==1.9.1
+sentence-transformers==6.0.1
+torch==2.14.1
+
+# Test dependency
+
+pytest==8.4.2
